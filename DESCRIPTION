@@ -5,8 +5,7 @@ Version: 1.0
 Date: 2021-01-02
 Author: Marcus Buckmann, Ozgur Simsek
 Maintainer: Marcus Buckmann <marcusbuckmann@gmail.com>
-Description: This package trains fast-and-frugal trees and tallying models, two simple two transparent classifcation models. 
-The algorithms to train these models include simple heuristic approaches as well cross-entropy optimisation. 
+Description: This package trains fast-and-frugal trees and tallying models, two simple two transparent classifcation models. The algorithms to train these models include simple heuristic approaches as well cross-entropy optimisation. 
 Depends:
     R (>= 3.5.0)
 License: GNU 3
