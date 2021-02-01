@@ -13,48 +13,94 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ffcr
-
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of ffcr is to ...
+The *ffcr* package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._[@katsikopoulos2021] describes these models, their applications and the algorithms to construct these in detail. 
+
+A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package implemts several methods for training these models, ranging from simple heuristics to computationyll more complex cross-entropy optimization (Rubinstein, 1999).
+
+
+There exist another R package, [FFTrees](https://github.com/ndphillips/FFTrees) to train fast-and-frugal trees.
+
 
 ## Installation
 
-You can install the released version of ffcr from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("ffcr")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+You can install ffcr using from this GitHub page with
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("marcusbuckmann/ffcr")
 ```
-## Example
+or download the Windows Binary _fftr_1.0.zip_ and install it from your hard drive.
 
-This is a basic example which shows you how to solve a common problem:
 
-```{r example}
+## How to use the package
+
+
+To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained form the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver the condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
+
+We start with loading the package and the data.
+
+
+
+```{r}
 library(ffcr)
-## basic example code
+data(liver)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
 
-```{r cars}
-summary(cars)
+
+## Training fast-and-frugal trees
+
+We start by training a fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument. 
+
+```{r}
+model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
+The model object shows the structure of the trees and its performance on the data set.
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r}
+print(model)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+
+To visualize the tree we use 
+```{r, fig1, fig.height = 6, fig.width=4, fig.align= "center"}
+plot(model)
+```
+
+
+To make predictions according to a fast-and-frugal tree, we can use the `predict` function. 
+```{r}
+predict(model, newdata = liver[301:nrow(liver),], type = "metric")
+
+```
+
+## Training tallying models
+
+To train tallying models, we use the *tally* function.
+
+
+
+```{r}
+model <- tally(liver, max_size = 6)
+```
+
+Please consult the vignette of the package for more details on the functionalities of the package and the book _Classification in the Wild_ for background information on fast-and-frugal trees and tallying models.
+
+# References
+
+
+Dua, Dheeru, and Casey Graff. 2017. “UCI Machine Learning Repository.” University of California, Irvine, School of Information; Computer Sciences. http://archive.ics.uci.edu/ml.
+
+Katikopoulos, Konstantinos V., Özgür Şimşek, Marcus Buckmann, and Gerd Gigerenzer. 2020. Classification in the Wild: The Science and Art of Transparent Decision Making. MIT Press.
+
+Ramana, Bendi Venkata, M Surendra Prasad Babu, and N. B. Venkateswarlu. 2011. “A Critical Study of Selected Classification Algorithms for Liver Disease Diagnosis.” International Journal of Database Management Systems 3 (2): 101–14.
+
+Rubinstein, Reuven. 1999. “The Cross-Entropy Method for Combinatorial and Continuous Optimization.” Methodology and Computing in Applied Probability 1 (2): 127–90.
+
+ 
+
+
