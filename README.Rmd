@@ -1,258 +1,60 @@
 ---
-title: "An introduction to ffcr"
-author: "Marcus Buckmann and Ozgur Simsek"
-date: "`r Sys.Date()`"
-# output: pdf_document
-output: rmarkdown::github_document
-# output: 
-#   html_document:
-#     keep_md: true
-bibliography: bib.bib
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: github_document
 ---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r setup, include = FALSE}
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
 )
 ```
 
+# ffcr
 
+<!-- badges: start -->
+<!-- badges: end -->
 
-# Introduction
+The goal of ffcr is to ...
 
-This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
+## Installation
 
-To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained form the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver the condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
+You can install the released version of ffcr from [CRAN](https://CRAN.R-project.org) with:
 
-We start with loading the package and the data.
-
-<!--- Figure \ref{} shows a fast-and-frugal tree and tallying model that predict who developed diabetes. --->
-
-
-
-```{r}
-# library(ffcr)
-devtools::load_all(".")
-data(liver)
+``` r
+install.packages("ffcr")
 ```
 
+And the development version from [GitHub](https://github.com/) with:
 
+``` r
+# install.packages("devtools")
+devtools::install_github("marcusbuckmann/ffcr")
+```
+## Example
 
-# Learning fast-and-frugal trees
+This is a basic example which shows you how to solve a common problem:
 
-
-The `fftr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *best-fit*^[We use the cross-entropy method [@rubinstein1999]. It does not guarantee to find the best possible tree but produces very accurate trees, on average.] and are described in the book.
-
-<!---
-The *naive* method is the simplest and computationally least demanding approach. It is called naive, because the usefulness of each feature is evaluated independently of the other features. For each feature, the naive method identifies a splitting point that best separate objects of the two classes in the data. By default, the package uses *Gini impurity* to judge the goodness of a split. The naive method by stacking the features according to the quality of the split points, i.e. the feature that best separates the classes constitute the root of the tree. Now that the order of the features is established, we need to determine the exists of the tree, which side of a split exits the tree and which class is predicted. All observations in the data set are sent through the tree. In each node of the tree, the branch of the split that is purer exits the tree. Purity is measured by the proportion of the classes falling into a branch. The purest branch only contains observations of one class, the least pure branch contains the same number of observations of both classes. The exit branch predicts the majority class of those object falling into the branch. The objects not exiting the tree are send to the next node and determine its exit. The process is completed until all object have exited the tree.
-
-The *greedy* method is the default method. It differs from the *naive* method in how it determines which feature to split. It places the variable at the root of the tree that produces the best split. Those observations that do not exit the tree at the first node are considered to find split for the second node. This procedure continues until all objects have exited the tree. 
-
-The *cross-entropy* method is a computationally demanding optimization approach. Given enough time, one can expect that the trees produced by this method outperform greedy trees. The user can tweak cross-entropy method
-
-Using the greedy and the cross-entropy method, a feature can be split several times at different values in a single fast-and-frugal tree. To avoid this, this user can set the argument *use_features_once* to FALSE. Another important argument is *max_depth* which limits the maximum number of nodes in the decision tree (default = 6). The cross-entropy optimization can be tweaked by adjusting additional parameters. These are described in the documentation of the `cross_entropy_control` function.
---->
-
-
-
-## Training a fast-and-frugal tree
-
-We train or first fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument.
-
-```{r}
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
+```{r example}
+library(ffcr)
+## basic example code
 ```
 
+What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
 
-Alternatively, we can call the function using the formula syntax. Here we train the fast-and-frugal tree using only only a few selected features.
-
-```{r, eval=FALSE}
-fftree(diagnosis ~ sex + age  + albumin + proteins + aspartate  , data = liver)
+```{r cars}
+summary(cars)
 ```
 
+You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
 
-The model object shows the structure of the trees and its performance on the data set.
+You can also embed plots, for example:
 
-```{r}
-print(model)
+```{r pressure, echo = FALSE}
+plot(pressure)
 ```
 
-
-To visualize the tree we use 
-```{r, fig1, fig.height = 6, fig.width=4, fig.align= "center"}
-plot(model)
-```
-
-
-How does the fast-and-frugal tree perform in cross-validation? By default the model is fitted to the complete data set but if we set 'cv = TRUE', 10-fold cross-validation is used to estimate the predictive performance of the tree. The model saved in the object is fitted on the complete training set. In fitting and prediction, the sensitivity is very high, while the specificity is low. The majority of the patients (71%) have liver disease, therefore predicting liver disease for most objects will produce a highly accurate tree. To avoid that, we can weigh the objects such that the objects in both classes get the same share. Let *p* be the proportion of patients that have liver disease. We weigh the patients with liver disease by 1-p, and the patients without disease by p.
-
-Note how sensitivity and specificity are more similar now:
-
-
-```{r}
-p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-model <- fftree(liver, weights = c(1-p,p), cv = TRUE)
-model
-```
-
-
-To make predictions according to a fast-and-frugal tree, we can use the `predict` function. It returns either the class label (*response*), the predicted probability of belonging to one of the classes (*probability*) or the performance across the observations (*metric*). Note that for the latter, the class labels need to be included in the data that is passed to the predict function.
-
-
-```{r}
-model <- fftree(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p))
-
-predict(model, newdata = liver[301:310,], type = "response")
-
-predict(model, newdata = liver[301:310,], type = "probability")
-
-predict(model, newdata = liver[301:nrow(liver),], type = "metric")
-
-```
-
-# Learning tallying models
-
-The package implements two different methods to train tallying models, which are also explained in the book. These are named *basic* and *best-fit*.^[We again use the cross-entropy method.]
-
-<!---
-The *regression* method only works on binary features. If the data contains numeric variables, these are split such that Gini impurity is minimized. On the dichotomized data, a Lasso regression model is trained. The tallying model does not use the actual weights of the regression model but only their sign (-1,1). The size of the tallying---the number of features with nonzero weight---is determined by the *maximum_size* parameter (default = 6). The tallying model users those features that are set to zero latest with an increasing degree of regularization.
-
-The *cross-entropy* method is very similar to the cross-entropy method of the fast-and-frugal trees. It optimizes the threshold at which each feature is split, the direction of the feature and which features to include into the tallying model.  As for fast-and-frugal trees, the optimization can be tweaked using the `cross_entropy_control` function.
-
-## Training a tallying model
-
-Training a tallying model and making predictions just works as it does for fast-and-frugal trees.
---->
-
-```{r}
-p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-model <- tally(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_size = 6)
-
-predict(model, newdata = liver[301:nrow(liver),], type = "metric")
-
-```
-
-
-
-
-
-## References
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format: -->
-
-<!-- - Never uses retina figures -->
-<!-- - Has a smaller default figure size -->
-<!-- - Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style -->
-
-<!-- ## Vignette Info -->
-
-<!-- Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette. -->
-
-<!-- ## Styles -->
-
-<!-- The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows: -->
-
-<!--     output:  -->
-<!--       rmarkdown::html_vignette: -->
-<!--         css: mystyles.css -->
-
-<!-- ## Figures -->
-
-<!-- The figure sizes have been customised so that you can easily put two images side-by-side.  -->
-
-<!-- ```{r, fig.show='hold'} -->
-<!-- plot(1:10) -->
-<!-- plot(10:1) -->
-<!-- ``` -->
-
-<!-- You can enable figure captions by `fig_caption: yes` in YAML: -->
-
-<!--     output: -->
-<!--       rmarkdown::html_vignette: -->
-<!--         fig_caption: yes -->
-
-<!-- Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**. -->
-
-<!-- ## More Examples -->
-
-<!-- You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`. -->
-
-<!-- ```{r, echo=FALSE, results='asis'} -->
-<!-- knitr::kable(head(mtcars, 10)) -->
-<!-- ``` -->
-
-<!-- Also a quote using `>`: -->
-
-<!-- > "He who gives up [code] safety for [code] speed deserves neither." -->
-<!-- ([via](https://twitter.com/hadleywickham/status/504368538874703872)) -->
+In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
