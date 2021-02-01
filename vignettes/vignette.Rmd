@@ -1,8 +1,12 @@
 ---
 title: "An introduction to ffcr"
-author: "Marcus Buckmann"
+author: "Marcus Buckmann and Ozgur Simsek"
 date: "`r Sys.Date()`"
-output: pdf_document
+# output: pdf_document
+output: rmarkdown::github_document
+# output: 
+#   html_document:
+#     keep_md: true
 bibliography: bib.bib
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
@@ -33,7 +37,8 @@ We start with loading the package and the data.
 
 
 ```{r}
-library(ffcr)
+# library(ffcr)
+devtools::load_all(".")
 data(liver)
 ```
 

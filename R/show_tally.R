@@ -50,7 +50,7 @@ setMethod("show", signature("tallyModel"),
 )
 
 
-showTally <- function(model,...){
+showTally <- function(model, ...){
   weights <- model@tally$weights
   intercept <- model@tally$intercept
   # we show tallying as a strictly positive sum, therefore we have to adjust intercept

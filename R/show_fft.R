@@ -123,18 +123,13 @@ setMethod("plot", signature("fftreeModel"), function(x, probabilities = F, legen
 }
 )
 
-plotFFT <- function(model, update = T, weights = c(1,1), probabilities = F, showLegend = TRUE, showBox = FALSE, branchlab = TRUE, colPos = "cornflowerblue", colNeg = "brown3", show_label = FALSE, show_observations = FALSE){
+plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRUE, showBox = FALSE, branchlab = TRUE, colPos = "cornflowerblue", colNeg = "brown3", show_label = FALSE, show_observations = FALSE){
 
   colDark = colPos
   colLight = colNeg
   # lpn <- 1; lpd <- 2 # laplace smoother
 
   lpn <- 0; lpd <- 0
-
-  if(update)
-    model <- updateTree(model, data.input = model@training_data, changeSide = F, changePrediction = F, weights = weights)
-
-
 
   mar.old <- graphics::par()$mar
   graphics::par(mar = c(0,0,0,0))
@@ -159,16 +154,16 @@ plotFFT <- function(model, update = T, weights = c(1,1), probabilities = F, show
   exit.label <- ifelse(m[,"exit"] >= 0.5, 1, 0)
   x.range <- cumsum(exit.label*2-1)
   y.delta <- - 1/(1.35*depth+2)
-  laby.delta <- min(c(abs(y.delta/5),.02))
-  fracy.delta <- min(c(abs(y.delta/5),.02))
+  laby.delta <- min(c(abs(y.delta / 5), .02))
+  fracy.delta <- min(c(abs(y.delta / 5), .02))
 
-  y.space <- abs(1/depth/3)
-  y.space <- min(c(.1,y.space))
+  y.space <- abs(1 / depth / 3)
+  y.space <- min(c(0.1, y.space))
 
   x.min <- min(x.range)
   x.max <- max(x.range)
 
-  x.delta <- 1/(3+2*(x.max - x.min))
+  x.delta <- 1 / (3 + 2 * (x.max - x.min))
   x.delta <- min(c(x.delta,1.3*abs(y.delta))) # set maximum ratio of y and x delta.
   current.x <- .5 - ((x.min + x.max)/3)*x.delta
 
@@ -180,17 +175,17 @@ plotFFT <- function(model, update = T, weights = c(1,1), probabilities = F, show
     bHeight <- abs(x.delta * .5)
   }
 
-  current.y <- 1 - .5*y.space
+  current.y <- 1 - .5 * y.space
 
   leg.x.left <- current.x - abs(x.min) *x.delta
   leg.x.right <- current.x + abs(x.max) * x.delta
 
-  leg.x <- ifelse(current.x>.5,.05, .85)
-  leg.y <- current.y+.02
-
+  leg.x <- ifelse(current.x>.5, .05, .6)
+  # leg.y <- current.y + .01
+  leg.y <- 1
   class_labels <- rev(model@class_labels)
   if(showLegend){
-    graphics::legend(x = leg.x, y = leg.y,  legend = class_labels, col = c("black","black"),bty ="n", pch = c(22,22), pt.bg = c(colDark, colLight), cex = 1.2, pt.cex = 2.4)
+    graphics::legend(x = leg.x, y = leg.y,  legend = class_labels, col = c("black","black"),bty ="n", pch = c(22,22), pt.bg = c(colDark, colLight), cex = 1, pt.cex = 1.5)
     # graphics::text(x = leg.x, y = leg.y-.2,  labels  = bquote(n[.(cL[1])]/(n[.(cL[1])] + n[.(cL[2])])), cex = 1, pos = 4)
   }
 
