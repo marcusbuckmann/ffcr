@@ -1,0 +1,24 @@
+#' Liver patients
+#'
+#' A dataset containing containing 416 liver and 167 non liver patient records.
+#' The  data was collected in the northeast of Andhra Pradesh, India.
+#'
+#' @format A data frame with 579 rows and 11 variables:
+#' \describe{
+#'   \item{diagnosis}{whether subject is liver patient (416) or not (167), labeled by experts}
+#'   \item{age}{age of patient}
+#'   \item{sex}{either \code{'female'} or \code{'male'}}
+#'   \item{totalBilirubin}{total bilirubin concentration in the blood}
+#'   \item{directBilirubin}{direct bilirubin concentration in the blood}
+#'   \item{alkaline}{alkaline phosphotase concentration}
+#'   \item{alamine}{alamine aminotransferase concentration}
+#'   \item{aspartate}{aspartate aminotransferase concentration}
+#'   \item{proteins}{protein concentration}
+#'   \item{albumin}{albumin concentration}
+#'   \item{albuminGlobulin}{ albumin globulin ratio}
+#' }
+#' @source \url{https://archive.ics.uci.edu/ml/datasets/ILPD+(Indian+Liver+Patient+Dataset)}
+#' @references Dua, Dheeru, and Graff, Casey "UCI machine learning repository." (2017)
+#' @references Ramana, Bendi Venkata, M. Surendra Prasad Babu, and N. B. Venkateswarlu. "A critical study of selected classification algorithms for liver disease diagnosis." International Journal Of Database Management Systems 3.2 (2011): 101-114.
+#'
+"liver"

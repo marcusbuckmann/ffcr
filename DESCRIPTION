@@ -1,0 +1,44 @@
+Package: ffcr
+Type: Package
+Title: Train two families of transparent classification models: fast-and-frugal trees and tallying
+Version: 1.0
+Date: 2021-01-02
+Author: Marcus Buckmann, Ozgur Simsek
+Maintainer: Marcus Buckmann <marcusbuckmann@gmail.com>
+Description: This package trains fast-and-frugal trees and tallying models, two simple two transparent classifcation models. 
+The algorithms to train these models include simple heuristic approaches as well cross-entropy optimisation. 
+Depends:
+    R (>= 3.5.0)
+License: GNU 3
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat
+Imports:
+    Rcpp,
+    methods,
+    glmnet
+LinkingTo: Rcpp
+RoxygenNote: 7.1.1
+VignetteBuilder: 
+     knitr
+LazyData: true
+Collate: 
+    'RcppExports.R'
+    'cross-entropy.R'
+    'diabetes.R'
+    'fft.R'
+    'fft.predict.R'
+    'helper.R'
+    'liver.R'
+    'splits.R'
+    'show_fft.R'
+    'splits_helper.R'
+    'tally.R'
+    'tally.predict.R'
+    'tally_helper.R'
+    'show_tally.R'
+    'tree_algorithms.R'
+    'tree_helper.R'
+    'tree_pruning.R'
+Config/testthat/edition: 3
