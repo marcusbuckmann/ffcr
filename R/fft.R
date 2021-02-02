@@ -118,7 +118,7 @@ setMethod("fftree", signature(data = "data.frame"),
               criterion <- data[,1]
               class_labels <- as.character(sort(unique(criterion)))
               criterion <- ifelse(as.character(criterion) == class_labels[2], 1,0)
-              prediction.clean <- computePerformance(criterion, pred, threshold = .5, random = F)
+              prediction.clean <- computePerformance(criterion, pred)
               structure.clean <- apply(structure.output,2,mean)
 
             }
@@ -196,7 +196,7 @@ buildTree <-  function(data,
                        weights = c(1,1),
                        pruning = "no",
                        cross_entropy_parameters = cross_entropy_control()){
-  data.original <- data
+  data_original <- data
   criterion <- getCriterion(data)
   class_labels <- as.character(sort(unique(criterion)))
   prior <- getPrior(data)
@@ -254,12 +254,6 @@ buildTree <-  function(data,
     )
   }
 
-  # these assignments must be done before brute force starts
-  # model@type$order <- order
-  # model@type$multiple_splits <- multiple_splits
-  # model@type$split <- split_function
-
-
   if(method %in% c("naive")){
     model <- updateTree(model, data, changeSide = TRUE, weights = weights, pruneEmpty = TRUE)
     model@training_data <- data
@@ -284,8 +278,8 @@ buildTree <-  function(data,
   if(pruning)
     model <- pruneCV(model, data, include_empty = TRUE, costs = costs)
 
-    model@performance$fit <- predict(model, data, "metric")
-    model@performance$fit.structure <- computeStructure(model, data)
+    model@performance$fit <- predict(model, data_original, "metric")
+    model@performance$fit.structure <- computeStructure(model, data_original)
 
   return(model)
 }

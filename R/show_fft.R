@@ -172,7 +172,7 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
     bHeight <- abs(y.delta * .7)
   } else {
     bWidth <- x.delta*.5
-    bHeight <- abs(x.delta * .5)
+    bHeight <- abs(x.delta * .35)
   }
 
   current.y <- 1 - .5 * y.space
@@ -235,7 +235,7 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
         graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight * (1 - out.prop), col = colLight, border = NA)
         graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = NULL) # border only
         if(show_observations)
-          graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
+          graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y + y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
       } else {
         graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y + y.delta, ytop = current.y+y.delta - bHeight, col = colDark, border = NA)
 

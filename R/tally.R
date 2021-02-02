@@ -107,7 +107,7 @@ setMethod("tally", signature(data = "data.frame"),
               criterion <- data[,1]
               class_labels <- as.character(sort(unique(criterion)))
               criterion <- ifelse(as.character(criterion) == class_labels[2], 1,0)
-              prediction.clean <- computePerformance(criterion, pred, threshold = .5, random = F)
+              prediction.clean <- computePerformance(criterion, pred, threshold = .5)
             }
 
             model <- buildTallying(data = data,

@@ -84,7 +84,7 @@ findOptimalThresholdCost <- function(data_input, model, costs, predicted = NULL,
   n.objects <- sum(all.splits[1,-1])
   split.values.middle <- (all.splits[,1] + c(all.splits[-1,1], max(all.splits[-1, 1]))) / 2
   split.values.middle <- c(0, .5, split.values.middle)
-  split.performance <- sapply(split.values.middle, function(x) computePerformance(criterion, predicted, threshold = x, random = F, weights = weights)["Accuracy"])
+  split.performance <- sapply(split.values.middle, function(x) computePerformance(criterion, predicted, threshold = x, weights = weights)["Accuracy"])
   ix <- which(split.performance == max(split.performance))
   n.splits <- length(split.values.middle)
   threshold <- split.values.middle[ix]
@@ -131,12 +131,12 @@ predicting.cv.glmnet <- function(object, test.data, return.metric = T, optimize.
   return(predicted)
 }
 
-predicting.tallyBinary <- function(model.input, data_input, weights = c(1,1), return.metric = TRUE, random = TRUE, doSigmoid = TRUE,...){
+predicting.tallyBinary <- function(model.input, data_input, weights = c(1,1), return.metric = TRUE, doSigmoid = TRUE,...){
   #input is any linear classifier that is represented as a vector
   # with the intercept as the first entry and the weights in the remaining entries
   pred <- model.input[1] + (model.input[-1]%*%t(data_input[,-1]))[1,]
   if(return.metric)
-    return(computePerformance(data_input[,1], pred, threshold = 0, weights = weights, random = random))
+    return(computePerformance(data_input[,1], pred, threshold = 0, weights = weights))
   if(doSigmoid)
     return(sigmoid(pred))
   return(pred)

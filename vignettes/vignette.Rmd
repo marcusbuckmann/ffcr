@@ -1,12 +1,8 @@
 ---
 title: "An introduction to ffcr"
-author: "Marcus Buckmann and Ozgur Simsek"
+author: "Marcus Buckmann and Özgür Şimşek"
 date: "`r Sys.Date()`"
-# output: pdf_document
-output: rmarkdown::github_document
-# output: 
-#   html_document:
-#     keep_md: true
+output: pdf_document
 bibliography: bib.bib
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
@@ -26,13 +22,14 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
+This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ (Katiskopoulos et al., 2020) describes these models, their applications and the algorithms to construct these in detail. 
+
+
+A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
 
 To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained form the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver the condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
 
 We start with loading the package and the data.
-
-<!--- Figure \ref{} shows a fast-and-frugal tree and tallying model that predict who developed diabetes. --->
 
 
 
@@ -63,17 +60,17 @@ Using the greedy and the cross-entropy method, a feature can be split several ti
 
 ## Training a fast-and-frugal tree
 
-We train or first fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument.
+We train a fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument.
 
 ```{r}
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
+model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
 ```
 
 
 Alternatively, we can call the function using the formula syntax. Here we train the fast-and-frugal tree using only only a few selected features.
 
 ```{r, eval=FALSE}
-fftree(diagnosis ~ sex + age  + albumin + proteins + aspartate  , data = liver)
+fftree(diagnosis ~ sex + age + albumin + proteins + aspartate  , data = liver)
 ```
 
 
@@ -85,7 +82,7 @@ print(model)
 
 
 To visualize the tree we use 
-```{r, fig1, fig.height = 6, fig.width=4, fig.align= "center"}
+```{r, fig1, fig.height = 5, fig.width=4, fig.align= "center"}
 plot(model)
 ```
 
@@ -133,8 +130,8 @@ Training a tallying model and making predictions just works as it does for fast-
 ```{r}
 p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
 model <- tally(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_size = 6)
+model
 
-predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 
 ```
 
@@ -145,12 +142,6 @@ predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 ## References
 
 
-
-
-
-
-
- 
 
 
 

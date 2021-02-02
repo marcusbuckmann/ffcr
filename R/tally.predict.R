@@ -1,11 +1,11 @@
 setGeneric("prediction", function(object, data.input, ...) standardGeneric("prediction"))
 setMethod("prediction", signature("tallyModel"),
-          function(object, data.input, return.metric = T, random = T, lazy = F, weights = c(1,1)){
+          function(object, data.input, return.metric = T, lazy = F, weights = c(1,1)){
             criterion <- getCriterion(data.input)
             cues <- getCues(data.input)
             output <- Tallytest(object, cues)
             if(return.metric)
-              return(computePerformance(criterion,output, random = random, weights = weights))
+              return(computePerformance(criterion,output, weights = weights))
             else
               return(output)
           }

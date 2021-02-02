@@ -318,10 +318,10 @@ estimateProbabilty <- function(criterion,predict.criterion,current_cue,threshold
 
 invertSidesModel <- function(model){
   side <- model[7]
-  if(side==1)
-    exit.new<-model[5]/(model[5]+model[6])
-  if(side==0)
-    exit.new<-model[3]/(model[3]+model[4])
+  if(side == 1)
+    exit.new <- model[5] / (model[5] + model[6])
+  if(side == 0)
+    exit.new <- model[3] / (model[3] + model[4])
 
   inverted.line <- c(model[1:6],1-side,exit.new,NA)
   return(inverted.line)

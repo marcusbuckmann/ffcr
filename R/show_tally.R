@@ -19,23 +19,23 @@ setMethod("show", signature("tallyModel"),
             if(length(object@performance$fit)>0){
               cat("\n")
               cat("\nFitted values:\n")
-              counts <- c(object@performance$fit["True positives"],
-                          object@performance$fit["False positives"],
-                          object@performance$fit["False negatives"],
-                          object@performance$fit["True negatives"])
+              performance_train <- object@performance$fit
+              counts <- c(performance_train["True positives"],
+                          performance_train["False positives"],
+                          performance_train["False negatives"],
+                          performance_train["True negatives"])
               tab <- data.frame("   Observed" = paste0("   ",rep(rev(object@class_labels),2)),
                          Predicted = rep(rev(object@class_labels),each = 2),
                          N=counts, check.names = FALSE)
               # center column names
               name_width <- max(sapply(names(tab)[1:2], nchar))
-              names(tab)[1:2] <- format(names(tab)[1:2], width = name_width, justify = "centre")
-              print(tab, row.names = FALSE)
+              # names(tab)[1:2] <- format(names(tab)[1:2], width = name_width, justify = "centre")
+              print(tab, row.names = FALSE, right = FALSE)
 
-              performance_train <- object@performance$fit
               cat("\nFitting:")
               tab <- data.frame(" " = paste0("   ", names(performance_train)), "  " = format(round(performance_train,2)))
               colnames(tab) <- c(" ", "  ")
-              print(tab[1:6, ], row.names = FALSE, right = FALSE)
+              print(tab[1:5, ], row.names = FALSE, right = FALSE)
             }
 
             if(length(object@performance$cv.performance)>0){
@@ -44,7 +44,7 @@ setMethod("show", signature("tallyModel"),
               performance_cv <- object@performance$cv.performance
               tab <- data.frame(" " = paste0("   ", names(performance_cv)), "  " = format(round(performance_cv,2)))
               colnames(tab) <- c(" ", "  ")
-              print(tab[1:6, ], row.names = FALSE, right = FALSE)
+              print(tab[1:5, ], row.names = FALSE, right = FALSE)
             }
           }
 )

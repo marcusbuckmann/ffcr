@@ -116,7 +116,7 @@ To visualize the tree we use
 plot(model)
 ```
 
-<img src="man/figures/README-fig1-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-fig1-1.png" width="60%" style="display: block; margin: auto;" />
 
 To make predictions according to a fast-and-frugal tree, we can use the
 `predict` function.

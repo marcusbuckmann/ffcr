@@ -55,7 +55,7 @@ auroc <- function(observed, score) {
 }
 
 
-computePerformance <- function(criterion, predicted, threshold = .5, random = TRUE, weights = c(1,1)){
+computePerformance <- function(criterion, predicted, threshold = .5, random = FALSE, weights = c(1,1)){
 
   predicted[is.na(predicted)] <- stats::runif(sum(is.na(predicted)))
   predicted.t <- ifelse(predicted > threshold,1,0)
@@ -79,8 +79,8 @@ computePerformance <- function(criterion, predicted, threshold = .5, random = TR
   matthews <- (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
   if(is.na(matthews))
     matthews <- 0
-  performance <- c(auc, accuracy, tp.rate, 1-fp.rate, balanced, f1, tp, fp, tn, fn)
-  names(performance) <- c("AUC", "Accuracy", "Sensitivity", "Specificity", "Balanced accuracy", "F1 score", "True positives", "False positives", "True negatives", "False negatives")
+  performance <- c(accuracy, tp.rate, 1-fp.rate, balanced, f1, tp, fp, tn, fn)
+  names(performance) <- c("Accuracy", "Sensitivity", "Specificity", "Balanced accuracy", "F1 score", "True positives", "False positives", "True negatives", "False negatives")
   return(performance)
 }
 
