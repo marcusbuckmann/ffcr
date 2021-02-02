@@ -5,12 +5,14 @@
 
 <!-- badges: end -->
 
+## Fast-and-frugal classification in R (ffcr)
+
 The *ffcr* package allows the construction of two families of
 transparent classification models: *fast-and-frugal trees* and
 *tallying* models. The book *Classification in the Wild: The Science and
-Art of Transparent Decision Making.*\[@katsikopoulos2021\] describes
-these models, their applications and the algorithms to construct these
-in detail.
+Art of Transparent Decision Making.* (Katiskopoulos et al., 2020)
+describes these models, their applications and the algorithms to
+construct these in detail.
 
 A fast-and-frugal tree is a decision tree with a simple structure: one
 branch of each node exits tree, the other continues to the next node
@@ -19,9 +21,8 @@ evidence the same weight. The package implemts several methods for
 training these models, ranging from simple heuristics to computationyll
 more complex cross-entropy optimization (Rubinstein, 1999).
 
-There exist another R package,
-[FFTrees](https://github.com/ndphillips/FFTrees) to train
-fast-and-frugal trees.
+There exist an alternative excellent R package to train fast-and-frugal
+trees, [FFTrees](https://github.com/ndphillips/FFTrees).
 
 ## Installation
 
@@ -32,19 +33,15 @@ You can install ffcr using from this GitHub page with
 devtools::install_github("marcusbuckmann/ffcr")
 ```
 
-or download the Windows Binary *fftr\_1.0.zip* and install it from your
+or download the Windows Binary *ffcr\_1.0.zip* and install it from your
 hard drive.
 
 ## How to use the package
 
-To illustrate the functionality of the package, we use the *Liver* data
-set \[@ramana2011\] that we obtained form the UCI machine learning
-repository \[@dua2017\]. It contains 579 patients of which 414 have a
-liver the condition and the other 165 do not. We predict which patient
-has a liver condition using medical measures and the age and gender of
-the people.
-
-We start with loading the package and the data.
+To illustrate the functionality of the package, we use a medical
+problem, predicting which patients have a liver condition. We start with
+loading the package and the data (Dua & Graff, 2017; Ramana, Surendra &
+Venkateswarlu, 2011), which is included in the package.
 
 ``` r
 library(ffcr)
@@ -58,7 +55,7 @@ the first column in the data set is the class label, we can simply pass
 the data set as the first argument.
 
 ``` r
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
+model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
 ```
 
 The model object shows the structure of the trees and its performance on
@@ -70,7 +67,7 @@ print(model)
 #>   type: "recursive" 
 #> 
 #> Call: 
-#> fftree(data = data, method = "greedy", max_depth = 6, use_features_once = FALSE, 
+#> fftree(data = data, method = "greedy", max_depth = 4, use_features_once = FALSE, 
 #>     formula = formula)
 #> 
 #> Formula: 
@@ -84,30 +81,27 @@ print(model)
 #>   totalBilirubin > 1.65: Liver disease (1.00) (213)
 #>     alkaline > 211.5: Liver disease (1.00) (132)
 #>       age <= 25.5: No liver disease (0.00) (27)
-#>         alkaline <= 144.5: Liver disease (1.00) (27)
-#>           albuminGlobulin > 1.68: No liver disease (0.00) (4)
-#>             alamine <= 19.5: No liver disease (0.00) (38)
-#>               alamine > 19.5: Liver disease (1.00) (138)
+#>         age > 25.5: Liver disease (0.55) (207)
 #> 
 #> 
 #> Fitted values:
 #>             Observed       Predicted    N
 #>        Liver disease    Liver disease   0
-#>     No liver disease    Liver disease 510
+#>     No liver disease    Liver disease 552
 #>        Liver disease No liver disease   0
-#>     No liver disease No liver disease  69
+#>     No liver disease No liver disease  27
 #> 
 #> Fitting:                            
 #>     AUC                   NA
-#>     Accuracy            0.12
+#>     Accuracy            0.05
 #>     Sensitivity          NaN
-#>     Specificity         0.12
+#>     Specificity         0.05
 #>     Balanced accuracy    NaN
 #>     F1 score            0.00
 #>                   
-#>     Depth     6.00
-#>     Features  5.00
-#>     Frugality 3.01
+#>     Depth     3.00
+#>     Features  3.00
+#>     Frugality 2.04
 ```
 
 To visualize the tree we use
@@ -116,7 +110,7 @@ To visualize the tree we use
 plot(model)
 ```
 
-<img src="man/figures/README-fig1-1.png" width="60%" style="display: block; margin: auto;" />
+<img src="man/figures/tree.png" width="50%" style="display: block; margin: auto;" />
 
 To make predictions according to a fast-and-frugal tree, we can use the
 `predict` function.
@@ -124,11 +118,11 @@ To make predictions according to a fast-and-frugal tree, we can use the
 ``` r
 predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 #>               AUC          Accuracy       Sensitivity       Specificity 
-#>         0.6078142         0.7383513         0.9481865         0.2674419 
+#>        0.70779612        0.69892473        0.96891192        0.09302326 
 #> Balanced accuracy          F1 score    True positives   False positives 
-#>         0.6078142         0.8337130       183.0000000        63.0000000 
+#>        0.53096759        0.81659389      187.00000000       78.00000000 
 #>    True negatives   False negatives 
-#>        23.0000000        10.0000000
+#>        8.00000000        6.00000000
 ```
 
 ## Training tallying models
@@ -136,7 +130,7 @@ predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 To train tallying models, we use the *tally* function.
 
 ``` r
-model <- tally(liver, max_size = 6)
+model <- tally(liver, max_size = 4)
 ```
 
 Please consult the vignette of the package for more details on the

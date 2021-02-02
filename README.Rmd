@@ -15,13 +15,14 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 <!-- badges: end -->
+## Fast-and-frugal classification in R (ffcr)
 
-The *ffcr* package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._[@katsikopoulos2021] describes these models, their applications and the algorithms to construct these in detail. 
+The *ffcr* package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ (Katiskopoulos et al., 2020) describes these models, their applications and the algorithms to construct these in detail. 
 
 A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package implemts several methods for training these models, ranging from simple heuristics to computationyll more complex cross-entropy optimization (Rubinstein, 1999).
 
 
-There exist another R package, [FFTrees](https://github.com/ndphillips/FFTrees) to train fast-and-frugal trees.
+There exist an alternative excellent R package to train fast-and-frugal trees, [FFTrees](https://github.com/ndphillips/FFTrees).
 
 
 ## Installation
@@ -32,15 +33,13 @@ You can install ffcr using from this GitHub page with
 # install.packages("devtools")
 devtools::install_github("marcusbuckmann/ffcr")
 ```
-or download the Windows Binary _fftr_1.0.zip_ and install it from your hard drive.
+or download the Windows Binary _ffcr_1.0.zip_ and install it from your hard drive.
 
 
 ## How to use the package
 
 
-To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained form the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver the condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
-
-We start with loading the package and the data.
+To illustrate the functionality of the package, we use a medical problem, predicting which patients have a liver condition. We start with loading the package and the data (Dua & Graff, 2017; Ramana, Surendra & Venkateswarlu, 2011), which is included in the package.
 
 
 
@@ -56,7 +55,7 @@ data(liver)
 We start by training a fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument. 
 
 ```{r}
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
+model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
 ```
 
 The model object shows the structure of the trees and its performance on the data set.
@@ -67,9 +66,15 @@ print(model)
 
 
 To visualize the tree we use 
-```{r, fig1, fig.height = 6, fig.width = 4, fig.align= "center"}
+```{r, eval = FALSE}
 plot(model)
 ```
+
+```{r, echo=FALSE, out.width="50%", fig.cap="", fig.align= "center"}
+knitr::include_graphics("man/figures/tree.png")
+```
+
+
 
 To make predictions according to a fast-and-frugal tree, we can use the `predict` function. 
 ```{r}
@@ -84,13 +89,12 @@ To train tallying models, we use the *tally* function.
 
 
 ```{r}
-model <- tally(liver, max_size = 6)
+model <- tally(liver, max_size = 4)
 ```
 
 Please consult the vignette of the package for more details on the functionalities of the package and the book _Classification in the Wild_ for background information on fast-and-frugal trees and tallying models.
 
 # References
-
 
 Dua, Dheeru, and Casey Graff. 2017. “UCI Machine Learning Repository.” University of California, Irvine, School of Information; Computer Sciences. http://archive.ics.uci.edu/ml.
 
