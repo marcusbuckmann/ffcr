@@ -1,5 +1,5 @@
 ---
-title: "An introduction to ffcr"
+title: "Fast-and-frugal classification in R (ffcr)"
 author: "Marcus Buckmann and Özgür Şimşek"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ (Katiskopoulos et al., 2020) describes these models, their applications and the algorithms to construct these in detail. 
+This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ [@katsikopoulos2021] describes these models, their applications and the algorithms to construct these in detail. 
 
 
 A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
@@ -44,7 +44,7 @@ data(liver)
 # Learning fast-and-frugal trees
 
 
-The `fftr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *best-fit*^[We use the cross-entropy method [@rubinstein1999]. It does not guarantee to find the best possible tree but produces very accurate trees, on average.] and are described in the book.
+The `ffcr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *best-fit*^[We use the cross-entropy method [@rubinstein1999]. It does not guarantee to find the best possible tree but produces very accurate trees, on average.] and are described in the book.
 
 <!---
 The *naive* method is the simplest and computationally least demanding approach. It is called naive, because the usefulness of each feature is evaluated independently of the other features. For each feature, the naive method identifies a splitting point that best separate objects of the two classes in the data. By default, the package uses *Gini impurity* to judge the goodness of a split. The naive method by stacking the features according to the quality of the split points, i.e. the feature that best separates the classes constitute the root of the tree. Now that the order of the features is established, we need to determine the exists of the tree, which side of a split exits the tree and which class is predicted. All observations in the data set are sent through the tree. In each node of the tree, the branch of the split that is purer exits the tree. Purity is measured by the proportion of the classes falling into a branch. The purest branch only contains observations of one class, the least pure branch contains the same number of observations of both classes. The exit branch predicts the majority class of those object falling into the branch. The objects not exiting the tree are send to the next node and determine its exit. The process is completed until all object have exited the tree.

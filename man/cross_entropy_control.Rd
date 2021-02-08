@@ -14,8 +14,7 @@ cross_entropy_control(
   split_percentiles = FALSE,
   samples = 100,
   elite_samples = 5,
-  threads = 4,
-  verbose = FALSE
+  threads = parallel::detectCores() - 1
 )
 }
 \arguments{
@@ -37,9 +36,7 @@ cross_entropy_control(
 
 \item{elite_samples}{The number of best-performing models that are used to update the parameter distribution. The default is 10.}
 
-\item{threads}{Number of CPU kernels used. The default is 1.}
-
-\item{verbose}{If TRUE, it shows the progress of the training process. Default is FALSE.}
+\item{threads}{Number of CPU kernels used. The default is the number of available cores minus 1.}
 }
 \description{
 \code{cross_entropy_control} Contains a list of parameters that control the nuances of the cross-entropy optimization procedure.

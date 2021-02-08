@@ -29,12 +29,12 @@ setMethod("predict", signature("tallyModel"),
             newcues <- newdata[,train.names, drop = F]
             output <- Tallytest(object, newcues)
             if(type == "probability"){
-              out.final <- cbind(1 - output,output)
-              colnames(out.final) <- object@class_labels
+              out_final <- cbind(1 - output,output)
+              colnames(out_final) <- object@class_labels
             }
             if(type == "response"){
-              out.final <- ifelse(output >= 0.5, object@class_labels[2],object@class_labels[1])
-              out.final <- as.factor(out.final)
+              out_final <- ifelse(output >= 0.5, object@class_labels[2],object@class_labels[1])
+              out_final <- as.factor(out_final)
             }
             if(type == "metric"){
               criterion <- model.frame(formula = object@formula, data = newdata, na.action = NULL)[,1]

@@ -227,6 +227,9 @@ buildTallying <- function(data,
   }
 
   if(method == "cross-entropy"){
+    if (!all(sapply(data, class) %in% c("numeric", "integer"))){
+      stop("The cross-entropy method only works with numeric features. Please recode categorical variables to 0/1 binary indicators.")
+    }
     model <- do.call(tally_cross_entropy_multiple_starts, c(
       list(data),
       maximum_size = ifelse(is.null(max_size), 6, max_size),

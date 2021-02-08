@@ -11,8 +11,8 @@
 #'@param split_percentiles When TRUE, the candidate thresholds at which features can be split are the percentiles of the features' distribution. When FALSE the candidate values are obtained by dividing the feature's values in equidistant bins. The default value is FALSE.
 #'@param samples Number of models created in each iteration. The default is 100.
 #'@param elite_samples The number of best-performing models that are used to update the parameter distribution. The default is 10.
-#'@param threads Number of CPU kernels used. The default is 1.
-#'@param verbose If TRUE, it shows the progress of the training process. Default is FALSE.
+#'@param threads Number of CPU kernels used. The default is the number of available cores minus 1.
+
 
 #'@export
 cross_entropy_control <- function(
@@ -25,8 +25,8 @@ cross_entropy_control <- function(
   split_percentiles = FALSE,
   samples = 100,
   elite_samples = 5,
-  threads = 4,
-  verbose = FALSE
+  threads = parallel::detectCores() - 1
+
 ){
   if(elite_samples >= samples)
     stop("The number of elite_samples should be substantially smaller than the samples.")
@@ -44,7 +44,8 @@ cross_entropy_control <- function(
     samples = samples,
     elite_samples = elite_samples,
     threads = threads,
-    verbose = verbose)
+    verbose = FALSE # TODO for next version. https://stackoverflow.com/questions/5423760/how-do-you-create-a-progress-bar-when-using-the-foreach-function-in-r
+    )
   return(output)
 }
 
@@ -255,8 +256,11 @@ fft_cross_entropy_multiple_starts <- function(data_input,
                                               wFrugal = 0,
                                               ...){
 
-  # attention, currently only maximizes balanced accuracy
-  mods <- parallel::mclapply(1:starts, function(x) fft_cross_entropy(
+  maximum_time <- maximum_time / starts * threads
+
+  `%dopar%` <- foreach::`%dopar%`
+  doParallel::registerDoParallel(threads)
+  mods <- foreach::foreach(k = 1:starts) %dopar% fft_cross_entropy(
     data_input,
     maximum_size = maximum_size,
     samples = samples,
@@ -265,14 +269,15 @@ fft_cross_entropy_multiple_starts <- function(data_input,
     iterations = iterations,
     costs = costs,
     learning_rate = learning_rate,
-    maximum_time = maximum_time / starts * threads,
+    maximum_time = maximum_time,
     early_stopping = early_stopping,
     split_percentiles= split_percentiles,
     multiple_splits = multiple_splits,
     wFrugal = wFrugal,
-    inrep = x,
-    verbose = verbose),
-    mc.cores = getOption("mc.cores", as.integer(threads)))
+    inrep = k,
+    verbose = verbose)
+    doParallel::stopImplicitCluster()
+
 
   mod_maximum_size <- sapply(mods, function(x) nrow(x@tree$matrix)-1)
   predictions <- lapply(mods, function(x) as.numeric(as.character(predict(x,data_input,"response"))))
@@ -281,9 +286,28 @@ fft_cross_entropy_multiple_starts <- function(data_input,
   return(mods[[which.max(model_predictions)]])
 }
 
-tally_cross_entropy_multiple_starts <- function(data_input, starts = 10, maximum_size = 6, samples = 100, thresholds = 100, elite_samples = 10, iterations = 1000, costs = c(.5,.5), learning_rate = 0.05, maximum_time = 3600, early_stopping = 10, threads = 4, split_percentiles = F, verbose = F, ...){
+tally_cross_entropy_multiple_starts <- function(
+  data_input,
+  starts = 10,
+  maximum_size = 6,
+  samples = 100,
+  thresholds = 100,
+  elite_samples = 10,
+  iterations = 1000,
+  costs = c(.5,.5),
+  learning_rate = 0.05,
+  maximum_time = 3600,
+  early_stopping = 10,
+  threads = 4,
+  split_percentiles = F,
+  verbose = F,
+  ...){
 
-  mods <- parallel::mclapply(1:starts, function(x) tally_cross_entropy(
+  maximum_time <- maximum_time / starts * threads
+
+  `%dopar%` <- foreach::`%dopar%`
+  doParallel::registerDoParallel(threads)
+  mods <- foreach::foreach(k = 1:starts) %dopar% tally_cross_entropy(
     data_input,
     maximum_size = maximum_size,
     samples = samples,
@@ -292,13 +316,12 @@ tally_cross_entropy_multiple_starts <- function(data_input, starts = 10, maximum
     iterations = iterations,
     costs = costs,
     learning_rate = learning_rate,
-    maximum_time = maximum_time / starts,
+    maximum_time = maximum_time,
     early_stopping = early_stopping,
     split_percentiles = split_percentiles,
-    inrep = x,
-    verbose = verbose),
-    mc.cores = getOption("mc.cores",
-                         as.integer(threads)))
+    inrep = k,
+    verbose = verbose)
+  doParallel::stopImplicitCluster()
 
   mod_maximum_size <- sapply(mods, function(x) sum(x@tally$weights != 0))
   predictions <- lapply(mods, function(x) as.numeric(as.character(predict(x,data_input,"response"))))
@@ -364,7 +387,7 @@ fft_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thres
   }
 
   outV <- rep(NA, iterations)
-  tree1 <- fftree(data_input, max_depth = maximum_size, method = "naive") # only for establishing the tree object.
+  tree1 <- fftree(data_input, max_depth = maximum_size, method = "basic") # only for establishing the tree object.
   if(nrow(tree1@tree$matrix)-1 < maximum_size){
     ndif <- maximum_size - (nrow(tree1@tree$matrix)-1)
     tree1@tree$matrix <- rbind(tree1@tree$matrix,tree1@tree$matrix[rep(1,ndif),])

@@ -56,4 +56,14 @@ test_that("categoricalVSBinary", {
 )
 
 
+test_that("run_methods_without_error", {
+  expect_error(fftree(liver), NA)
+  expect_error(fftree(liver, method = "basic"), NA)
+  expect_error(fftree(liver, method = "greedy"), NA)
+  df <- liver
+  df$sex <- ifelse(df$sex == "Female", 1,0)
+  expect_error(fftree(df, method = "cross-entropy", cross_entropy_parameters = cross_entropy_control(iterations = 10, starts = 2, threads = 2)), NA)
+}
+)
+
 

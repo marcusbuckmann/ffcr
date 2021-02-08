@@ -15,41 +15,41 @@ setMethod("show", signature("fftreeModel"),
             cat("\nTree: \n")
             showTree(object, probabilities = F)
 
-            if(length(object@performance$fit)>0){
-              cat("\n")
-              cat("\nFitted values:\n")
-              counts <- c(object@performance$fit["True positives"],
-                          object@performance$fit["False positives"],
-                          object@performance$fit["False negatives"],
-                          object@performance$fit["True negatives"])
-              tab <- data.frame("   Observed" = paste0("   ",rep(rev(object@class_labels),2)),
-                                Predicted = rep(rev(object@class_labels),each = 2),
-                                N=counts, check.names = FALSE)
-              # center column names
-              name_width <- max(sapply(names(tab)[1:2], nchar))
-              names(tab)[1:2] <- format(names(tab)[1:2], width = name_width, justify = "centre")
-              print(tab, row.names = FALSE)
+
+            performance_train <- object@performance$fit
+            cat("\n")
+            cat("\nFitted values:\n")
+            counts <- c(performance_train["True positives"],
+                        performance_train["False positives"],
+                        performance_train["False negatives"],
+                        performance_train["True negatives"])
+            tab <- data.frame("   Observed" = paste0("   ",rep(rev(object@class_labels),2)),
+                              Predicted = rep(rev(object@class_labels),each = 2),
+                              N=counts, check.names = FALSE)
+            # center column names
+            name_width <- max(sapply(names(tab)[1:2], nchar))
+            # names(tab)[1:2] <- format(names(tab)[1:2], width = name_width, justify = "centre")
+            print(tab, row.names = FALSE, right = FALSE)
 
 
-              performance_train <- object@performance$fit
-              cat("\nFitting:")
-              tab <- data.frame(" " = paste0("   ", names(performance_train)), "  " = format(round(performance_train,2)))
-              colnames(tab) <- c(" ", "  ")
-              print(tab[1:6, ], row.names = FALSE, right = FALSE) # we do not show all metrics
+            cat("\nFitting:")
+            tab <- data.frame(" " = paste0("   ", names(performance_train)), "  " = format(round(performance_train,2)))
+            colnames(tab) <- c(" ", "  ")
+            print(tab[1:5, ], row.names = FALSE, right = FALSE) # we do not show all metrics
 
-              structure_train <- object@performance$fit.structure
-              tab <- data.frame(" " = paste0("   ", names(structure_train)), "  " = format(round(structure_train,2)))
-              colnames(tab) <- c(" ", "  ")
-              print(tab, row.names = FALSE, right = FALSE)
-            }
+            structure_train <- object@performance$fit.structure
+            tab <- data.frame(" " = paste0("   ", names(structure_train)), "  " = format(round(structure_train,2)))
+            colnames(tab) <- c(" ", "  ")
+            print(tab, row.names = FALSE, right = FALSE)
 
-            if(length(object@performance$cv.performance)>0){
+
+            if(length(object@performance$cv.performance) > 0){
               cat("\n")
               cat("Cross-validation:")
               performance_cv <- object@performance$cv.performance
               tab <- data.frame(" " = paste0("   ", names(performance_cv)), "  " = format(round(performance_cv,2)))
               colnames(tab) <- c(" ", "  ")
-              print(tab[1:6, ], row.names = FALSE, right = FALSE)
+              print(tab[1:5, ], row.names = FALSE, right = FALSE)
 
               structure_cv <- object@performance$cv.structure
               tab <- data.frame(" " = paste0("   ", names(structure_cv)), "  " = format(round(structure_cv,2)))
@@ -62,9 +62,9 @@ setMethod("show", signature("fftreeModel"),
 )
 
 
-showTree <- function(model, probabilities = F, update = T, weights = c(1,1),...){
-  if(update)
-    model <- updateTree(model, data.input = model@training_data, changeSide = F, changePrediction = F, weights = weights)
+showTree <- function(model, probabilities = F, weights = c(1,1),...){
+
+  model <- updateTree(model, data.input = model@training_data, changeSide = F, changePrediction = F, weights = weights)
   model.matrix <- model@tree$matrix
   category_information <- model@tree$categorical
   out.spaces <- "  "
@@ -76,14 +76,20 @@ showTree <- function(model, probabilities = F, update = T, weights = c(1,1),...)
     cat("Prediction:", round(model@prior,4), "\n")
   } else {
 
-    cat("\n Reason: Predicted class - (Proportion of class ",model@class_labels[2],") (Number of objects classified)\n\n", sep = "")
+    cat("\n Reason: Predicted class / (Proportion of class '",model@class_labels[2],"') / (Number of objects classified)\n\n", sep = "")
     for(i in 1:n.cues){
 
       cue.name <- cue.names[i]
       threshold <- round(model.matrix[i,"splitPoint"],3)
       direction <- ifelse(model.matrix[i,"side"] == 1," > ", " <= ")
+
       out.pred <- model.matrix[i,"exit"]
-      out.prob <- format(round(out.pred, 2), nsmall = 2)
+
+      out.prob <- ifelse(model.matrix[i,"side"] == 1,
+                         model.matrix[i,">+"] / sum(model.matrix[i,c(">+", ">-")]),
+                         model.matrix[i,"<=+"] / sum(model.matrix[i,c("<=+", "<=-")])
+      )
+      out.prob <- format(round(out.prob, 2), nsmall = 2)
 
       out.label <- ifelse(out.pred >= 0.5 ,1,0)
       out.label <- model@class_labels[out.label+1]

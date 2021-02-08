@@ -221,9 +221,6 @@ buildTree <-  function(data,
   }
 
   method <- match.arg(method, c("basic", "greedy", "cross-entropy"))
-
-
-
   orderFunction <- switch(order,
                           "gini" = orderGiniBook,
                           stop("no valid order function")
@@ -245,6 +242,9 @@ buildTree <-  function(data,
   }
 
   if(method == "cross-entropy"){
+    if (!all(sapply(data, class) %in% c("numeric", "integer"))){
+      stop("The cross-entropy method only works with numeric features. Please recode categorical variables to 0/1 binary indicators.")
+    }
     model <- do.call(fft_cross_entropy_multiple_starts, c(
       list(data),
       maximum_size = ifelse(is.null(maximum_size), 6, maximum_size),
