@@ -6,7 +6,7 @@ setMethod("show", signature("fftreeModel"),
           function(object) {
 
             cat("Fast-and-frugal Tree object\n")
-            cat("  type:", dQuote(object@type$algorithm),"\n")
+            cat("Trained with :", dQuote(object@parameters$algorithm), "method. \n")
 
             cat("\nCall: \n")
             print(object@call)
@@ -32,7 +32,7 @@ setMethod("show", signature("fftreeModel"),
             print(tab, row.names = FALSE, right = FALSE)
 
 
-            cat("\nFitting:")
+            cat("\nFitting performance:")
             tab <- data.frame(" " = paste0("   ", names(performance_train)), "  " = format(round(performance_train,2)))
             colnames(tab) <- c(" ", "  ")
             print(tab[1:5, ], row.names = FALSE, right = FALSE) # we do not show all metrics
@@ -45,7 +45,7 @@ setMethod("show", signature("fftreeModel"),
 
             if(length(object@performance$cv.performance) > 0){
               cat("\n")
-              cat("Cross-validation:")
+              cat("Cross-validation performance:")
               performance_cv <- object@performance$cv.performance
               tab <- data.frame(" " = paste0("   ", names(performance_cv)), "  " = format(round(performance_cv,2)))
               colnames(tab) <- c(" ", "  ")
@@ -76,7 +76,7 @@ showTree <- function(model, probabilities = F, weights = c(1,1),...){
     cat("Prediction:", round(model@prior,4), "\n")
   } else {
 
-    cat("\n Reason: Predicted class / (Proportion of class '",model@class_labels[2],"') / (Number of objects classified)\n\n", sep = "")
+    cat("Reason / Prediction / (Proportion of class '",model@class_labels[2],"') / (Number of objects classified)\n\n", sep = "")
     for(i in 1:n.cues){
 
       cue.name <- cue.names[i]
@@ -122,20 +122,19 @@ showTree <- function(model, probabilities = F, weights = c(1,1),...){
 #'@param x An object of type \linkS4class{fftreeModel-class}
 #'@param legend If \code{TRUE} legend is shown.
 #'@param probabilities If \code{TRUE} probability estimates are shown for each leaf. If \code{FALSE}, predicted class labels are shown.
+#'@param class_labels If \code{TRUE} class labels are shown for each leaf.
+#'@param colors Vector of length 2 to set the colors of the two classes. Default: \code{c("cornflowerblue""brown3")}.
 #'@param ... optional parameters passed to low level function
 #'@export
-setMethod("plot", signature("fftreeModel"), function(x, probabilities = F, legend = T,...){
-  plotFFT(x, probabilities = probabilities, showLegend = legend, ...)
+setMethod("plot", signature("fftreeModel"), function(x, probabilities = FALSE, legend = TRUE, class_labels = FALSE, colors  = c("brown3", "cornflowerblue"),...){
+  plotFFT(x, probabilities = probabilities, showLegend = legend, show_label = class_labels, showBox = probabilities,  colPos = colors[1], colNeg = colors[2], ...)
 }
 )
 
-plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRUE, showBox = FALSE, branchlab = TRUE, colPos = "cornflowerblue", colNeg = "brown3", show_label = FALSE, show_observations = FALSE){
+plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRUE, showBox = FALSE, branchlab = TRUE, colPos = "brown3", colNeg = "cornflowerblue", show_label = FALSE, show_observations = FALSE){
 
-  colDark = colPos
-  colLight = colNeg
-  # lpn <- 1; lpd <- 2 # laplace smoother
-
-  lpn <- 0; lpd <- 0
+  colPos = colPos
+  colNeg = colNeg
 
   mar.old <- graphics::par()$mar
   graphics::par(mar = c(0,0,0,0))
@@ -143,7 +142,7 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
   graphics::plot.window(xlim = c(0,1),ylim = c(0,1))
 
   m <- model@tree$matrix
-  depth <- nrow(m)-1
+  depth <- nrow(m)
   category_information <- model@tree$categorical
   cue.names <- rownames(m)
 
@@ -157,8 +156,6 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
   if(depth>7)
     ix <- 1 - (depth-7)*.1
 
-  exit.label <- ifelse(m[,"exit"] >= 0.5, 1, 0)
-  x.range <- cumsum(exit.label*2-1)
   y.delta <- - 1/(1.35*depth+2)
   laby.delta <- min(c(abs(y.delta / 5), .02))
   fracy.delta <- min(c(abs(y.delta / 5), .02))
@@ -166,12 +163,13 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
   y.space <- abs(1 / depth / 3)
   y.space <- min(c(0.1, y.space))
 
+  x.range <- cumsum(m[,"exit"]*2-1)
   x.min <- min(x.range)
   x.max <- max(x.range)
 
   x.delta <- 1 / (3 + 2 * (x.max - x.min))
   x.delta <- min(c(x.delta,1.3*abs(y.delta))) # set maximum ratio of y and x delta.
-  current.x <- .5 - ((x.min + x.max)/3)*x.delta
+  current.x <- .5 + ((x.min + x.max)/3)*x.delta
 
   if(showBox){
     bWidth <- x.delta*.5
@@ -183,27 +181,15 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
 
   current.y <- 1 - .5 * y.space
 
-  leg.x.left <- current.x - abs(x.min) *x.delta
-  leg.x.right <- current.x + abs(x.max) * x.delta
-
-  leg.x <- ifelse(current.x>.5, .05, .6)
-  # leg.y <- current.y + .01
-  leg.y <- 1
-  class_labels <- rev(model@class_labels)
+  class_labels <- model@class_labels
   if(showLegend){
-    graphics::legend(x = leg.x, y = leg.y,  legend = class_labels, col = c("black","black"),bty ="n", pch = c(22,22), pt.bg = c(colDark, colLight), cex = 1, pt.cex = 1.5)
-    # graphics::text(x = leg.x, y = leg.y-.2,  labels  = bquote(n[.(cL[1])]/(n[.(cL[1])] + n[.(cL[2])])), cex = 1, pos = 4)
+    leg.x <- ifelse(current.x>.5, .05, .6)
+    graphics::legend(x = leg.x, y = 1,  legend = rev(class_labels), col = c("black","black"),bty ="n", pch = c(22,22), pt.bg = c(colPos, colNeg), cex = 1, pt.cex = 1.5)
   }
 
   for(i in 1:(depth)){
     side <- cue.sides[i]
     exit <- ifelse(cue.exits[i]>=.5,1,0)
-
-    # exit == 1 & side == 1 # gs = ">"; goleft
-    # exit == 0 & side == 1 # gs = "<="  ; goright
-    # exit == 1 & side == 0 # gs = "<=" ; goleft
-    # exit == 0 & side == 0 # gs = "> ;goright
-    leave <- ifelse(exit == 0,"zero","one")
 
     if(is.na(category_information[[i]][1])){
 
@@ -218,130 +204,125 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
     }
 
 
-    graphics::text(x = current.x, y = current.y+.5*y.space, labels =  node, font = 2, cex = .9 * tx)
-    graphics::segments(x0 = current.x,x1 = current.x - x.delta, y0= current.y, y1 = current.y + y.delta)
-    graphics::segments(x0 = current.x,x1 = current.x+x.delta, y0= current.y, y1 = current.y + y.delta)
-    if(i<2 | branchlab){
-      graphics::text(x = current.x+ .5*x.delta+.03, y = current.y + .5 * y.delta, label = "no", cex = .7*tx)
-      graphics::text(x = current.x- .5*x.delta-.03, y = current.y + .5 * y.delta, label = "yes", cex = .7*tx)
+    if(i < depth){
+      graphics::text(x = current.x, y = current.y+.5*y.space, labels =  node, font = 2, cex = .9 * tx)
+      graphics::segments(x0 = current.x,x1 = current.x - x.delta, y0= current.y, y1 = current.y + y.delta)
+      graphics::segments(x0 = current.x,x1 = current.x+x.delta, y0= current.y, y1 = current.y + y.delta)
+      if(i < 2 | branchlab){
+        graphics::text(x = current.x+ .5*x.delta+.03, y = current.y + .5 * y.delta, label = "yes", cex = .7*tx)
+        graphics::text(x = current.x- .5*x.delta-.03, y = current.y + .5 * y.delta, label = "no", cex = .7*tx)
+      }
     }
 
     if(side == 1){
       out.frac <- c(m[i,">+"],m[i,">-"])
-
     } else {
       out.frac <- c(m[i,"<=+"],m[i,"<=-"])
     }
 
     out.prop <- out.frac[1]/sum(out.frac)
-    if(leave  == "zero" & i != depth){
+    if(exit  == 1){
 
       if(showBox){
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y + y.delta, ytop = current.y+y.delta - bHeight, col = colDark, border = NA)
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight * (1 - out.prop), col = colLight, border = NA)
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = NULL) # border only
+        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y + y.delta, ytop = current.y + y.delta - bHeight, col = colPos, border = NA)
+        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight * (1 - out.prop), col = colNeg, border = NA)
+        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = NULL) # border only
         if(show_observations)
-          graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y + y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
+        graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y + y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
       } else {
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y + y.delta, ytop = current.y+y.delta - bHeight, col = colDark, border = NA)
+        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y + y.delta, ytop = current.y+y.delta - bHeight, col = colPos, border = NA)
 
       }
 
-
-
       if(probabilities){
-        prob.out <- format(round((out.frac[1]+lpn)/(sum(out.frac)+lpd),2),nsmall = 2)
+        prob.out <- format(round((out.frac[1])/(sum(out.frac)),2),nsmall = 2)
         graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
       }
       else if (show_label){
         graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = class_labels[2], font = 4, cex = .9 * tx) # plot class label
       }
 
-      if(i != depth)
-        current.x <- current.x - x.delta
     }
-    if(leave == "one" & i != depth){
+    if(exit == 0){
       if(showBox){
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = colDark, border = NA)
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight*(1-out.prop), col = colLight, border = NA)
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = NULL)
+        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = colPos, border = NA)
+        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight*(1-out.prop), col = colNeg, border = NA)
+        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = NULL)
         if(show_observations)
           graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8 *tx)
 
       } else {
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = colLight, border = NA)
+        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = colNeg, border = NA)
       }
 
-      prob.out <- format(round((out.frac[1]+lpn)/(sum(out.frac)+lpd),2),nsmall = 2)
+      prob.out <- format(round((out.frac[1])/(sum(out.frac)),2),nsmall = 2)
       if (probabilities){
         graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
       }
       else if(show_label){
         graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta + laby.delta, label = class_labels[1], font = 4, cex = .9 * tx) # plot class label
       }
-      if(i != depth)
-        current.x <- current.x + x.delta
+
+
     }
+    if(i < depth - 1){
 
-
-    if(depth == i){
-      label.last = class_labels[2]
-      if(leave == "one"){
-        x.delta = -x.delta
-        bWidth <-  - bWidth
-        label.last = class_labels[1]
-      }
-      if(showBox){
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y+y.delta, ytop = current.y+y.delta-bHeight, col = colDark, border = NA)
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y+y.delta, ybottom = current.y+y.delta-bHeight*(1 - out.prop), col = colLight, border = NA)
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y+y.delta, ybottom = current.y+y.delta-bHeight, col = NULL) # border only
-        if(show_observations)
-          graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
-      } else {
-        graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y+y.delta, ytop = current.y + y.delta - bHeight, col = colDark, border = NA)
-      }
-      if(probabilities){
-
-        prob.out <- format(round((out.frac[1]+lpn)/(sum(out.frac)+lpd),2),nsmall = 2)
-        graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
-      } else if (show_label){
-        graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = label.last, font = 4, cex = .9 * tx) # plot class label
-      }
-
-      side <- 1 - side
-      if(side == 1){
-        out.frac <- c(m[i,">+"],m[i,">-"])
-      } else {
-        out.frac <- c(m[i,"<=+"],m[i,"<=-"])
-      }
-      out.prop <- out.frac[1]/sum(out.frac)
-
-      # class final
-      mlast <- m[depth :(depth+1),]
-      ix.last <- which(side == mlast[,"side"])
-      label.last <- ifelse(mlast[ix.last,"exit"]>=.5,class_labels[1], class_labels[2])
-
-      if(showBox){
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = colDark, border = NA)
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight*(1-out.prop), col = colLight, border = NA)
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = NULL)
-        if(show_observations)
-          graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8 *tx)
-      } else {
-        graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y+y.delta - bHeight, col = colLight, border = NA)
-      }
-      if(probabilities){
-        prob.out <- format(round((out.frac[1]+lpn)/(sum(out.frac)+lpd),2),nsmall = 2)
-        graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
-      } else if (show_label) {
-
-        graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta + laby.delta, label = label.last, font = 4, cex = .9 * tx) # plot class label
-      }
+      current.x <- current.x - (exit * 2 -1) *  x.delta
+      current.y <- current.y + y.delta - y.space
     }
-    current.y <- current.y + y.delta - y.space
 
 
   }
+  # if(depth == i){
+  #   label.last = class_labels[2]
+  #   if(side == 1){
+  #     out.frac <- c(m[i,">+"], m[i,">-"])
+  #   } else {
+  #     out.frac <- c(m[i,"<=+"], m[i,"<=-"])
+  #   }
+  #   out.prop <- out.frac[1]/sum(out.frac)
+  #
+  #   if(showBox){
+  #     graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y+y.delta, ytop = current.y + y.delta - bHeight, col = colPos, border = NA)
+  #     graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y+y.delta, ybottom = current.y + y.delta - bHeight*(1 - out.prop), col = colNeg, border = NA)
+  #     graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ytop = current.y+y.delta, ybottom = current.y + y.delta - bHeight, col = NULL) # border only
+  #     if(show_observations)
+  #       graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8*tx)
+  #   } else {
+  #     graphics::rect(xleft = current.x + x.delta, xright = current.x + x.delta + bWidth, ybottom = current.y+y.delta, ytop = current.y + y.delta - bHeight, col = colPos, border = NA)
+  #   }
+  #   if(probabilities){
+  #
+  #     prob.out <- format(round((out.frac[1])/(sum(out.frac)),2),nsmall = 2)
+  #     graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
+  #   } else if (show_label){
+  #     graphics::text(x = current.x + x.delta + .5 * bWidth, y = current.y+y.delta + laby.delta, label = label.last, font = 4, cex = .9 * tx) # plot class label
+  #   }
+  #
+  #
+  #   mlast <- m[depth :(depth+1),]
+  #   ix.last <- which(side == mlast[,"side"])
+  #   # label.last <- ifelse(mlast[ix.last,"exit"]>=.5, class_labels[1], class_labels[2])
+  #   label.last <- class_labels[1]
+  #
+  #   if(showBox){
+  #     graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = colPos, border = NA)
+  #     graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight*(1-out.prop), col = colNeg, border = NA)
+  #     graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = NULL)
+  #     if(show_observations)
+  #       graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y+y.delta - bHeight - fracy.delta, label = paste(round(out.frac[1],2),"/",round(sum(out.frac),2)), cex = .8 *tx)
+  #   } else {
+  #     graphics::rect(xleft = current.x - x.delta, xright = current.x - x.delta - bWidth,ytop = current.y + y.delta, ybottom = current.y + y.delta - bHeight, col = colNeg, border = NA)
+  #   }
+  #   if(probabilities){
+  #     prob.out <- format(round((out.frac[1])/(sum(out.frac)),2),nsmall = 2)
+  #     graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y + y.delta + laby.delta, label = prob.out, font = 4, cex = .9 * tx) # plot class label
+  #   } else if (show_label) {
+  #
+  #     graphics::text(x = current.x - x.delta - .5 * bWidth, y = current.y + y.delta + laby.delta, label = label.last, font = 4, cex = .9 * tx) # plot class label
+  #   }
+  # }
+
 
 
 

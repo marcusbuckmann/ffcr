@@ -10,8 +10,8 @@ fftree(
   data,
   formula = stats::as.formula(data),
   method = "greedy",
-  split_function = "gini",
   max_depth = 6,
+  split_function = "gini",
   weights = c(1, 1),
   pruning = FALSE,
   cv = FALSE,
@@ -23,8 +23,8 @@ fftree(
   data,
   formula = stats::as.formula(data.frame(data)),
   method = "greedy",
-  split_function = "gini",
   max_depth = 6,
+  split_function = "gini",
   weights = c(1, 1),
   pruning = FALSE,
   cv = FALSE,
@@ -36,8 +36,8 @@ fftree(
   data,
   formula = stats::as.formula(data.frame(data)),
   method = "greedy",
-  split_function = "gini",
   max_depth = 6,
+  split_function = "gini",
   weights = c(1, 1),
   pruning = FALSE,
   cv = FALSE,
@@ -46,33 +46,32 @@ fftree(
 )
 }
 \arguments{
-\item{data}{an object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The criterion can either be a factor with two levels or an integer \code{(0,1)}. The \emph{positive class} is the second factor level (\code{levels(data$criterion)[2]}), or \code{1} if the criterion is numeric.}
+\item{data}{An object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The response variable can either be a factor with two levels or an integer vector with values \code{0,1}.}
 
 \item{formula}{\code{\link[stats]{formula}} (optional). If \code{formula} is not provided, the first column of the data argument is used as the response variable and all other columns as predictors.}
 
-\item{method}{type of induction method for the fast-and-frugal tree:
+\item{method}{Type of induction method for the fast-and-frugal tree:
 \itemize{
 \item{greedy (default and recommended)}
 \item{basic}
 \item{cross-entropy}
 }}
 
-\item{split_function}{Which function should be used to determine the splitting values on numeric features. This only applies to fast-and-frugal trees with the 'basic' or 'greedy' method.
+\item{max_depth}{Maximum number of nodes of the fast-and-frugal tree (default: 6).}
 
-By default Gini entropy ('gini') is used. Other options are Shannon entropy ('entropy') and 'median'.}
+\item{split_function}{Function should be used to determine the splitting values on numeric features. This only applies to fast-and-frugal trees trained with the 'basic' or 'greedy' method. By default Gini entropy ('gini') is used. Other options are Shannon entropy ('entropy') and 'median'.}
 
-\item{max_depth}{set maximum number of nodes of the fast-and-frugal tree (default: 6)}
-
-\item{weights}{a numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+\item{weights}{A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight given to instances in the positive class, the second entry the weight of instances given to objects in the negative class.
 (\emph{see examples}).}
 
-\item{pruning}{by default pruning is not employed (\code{FALSE}). If the argument is set to \code{TRUE} the tree is pruned using cross-validation.}
+\item{pruning}{If the argument is set to \code{TRUE} the tree is pruned using cross-validation. This can increase the training time substantially and is not recommended when using the computationally costly 'cross-entropy' method.}
 
-\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model.}
+\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.}
 
-\item{use_features_once}{if \code{TRUE} an attribute is used only once in a tree. If \code{FALSE}, a feature may be split several times. Note that, by construction, the basic method can only use each feature once.}
+\item{use_features_once}{If \code{TRUE} an attribute is used only once in a tree. If \code{FALSE}, a feature may be split several times. Note that, by construction, the basic method can only use each feature once. The default value is \code{TRUE}.}
 
-\item{cross_entropy_parameters}{hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.}
+\item{cross_entropy_parameters}{Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed. By default cross-validation
+is not used.}
 }
 \value{
 A \linkS4class{fftreeModel} object.

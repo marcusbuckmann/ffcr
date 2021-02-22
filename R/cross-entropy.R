@@ -1,17 +1,25 @@
 
 #' Hyperparmaeters for the cross-entropy models
 #'
-#'\code{cross_entropy_control} Contains a list of parameters that control the nuances of the cross-entropy optimization procedure.
-#'@param starts Number of fast-and-frugal trees or tallying models generated with different seeds. The best fitting model will be return. The default is 10.
-#'@param learning_rate The default is 0.1.
+#'\code{cross_entropy_control} Returns a list of parameters that control the cross-entropy optimization procedure. The output of this function is be passed when training a fast-and-frugal tree or tallying model using the cross-entropy method (see examples).
+#'@param starts Number of fast-and-frugal trees or tallying models generated with different seeds. The best-fitting model will be returned. The default is 10.
+#'@param learning_rate Learning rate used in the optimization procedure. The higher the value, the quicker the model will converge. However, at higher learning rates, the model is more likely to converge to less accurate fast-and-frugal trees and tallying models. The default value is 0.1.
 #'@param maximum_time Maximum training time (in seconds) to obtain the final model.
-#'@param iterations The maximum number of iterations. Optimization may stop early if the model has converged. The default is 500.
+#'@param iterations The maximum number of iterations. The default is 500.
 #'@param early_stopping Training stops early if the performance does not improve after this many iterations in a row. The default is 25.
 #'@param thresholds The maximum number of numeric thresholds that are tested for a numeric feature. The default is 100.
-#'@param split_percentiles When TRUE, the candidate thresholds at which features can be split are the percentiles of the features' distribution. When FALSE the candidate values are obtained by dividing the feature's values in equidistant bins. The default value is FALSE.
+#'@param split_percentiles When TRUE, the candidate thresholds at which features can be split are the percentiles of the features' distribution. When FALSE the candidate values are obtained by dividing a feature's values in equidistant bins. The default value is \code{FALSE}.
 #'@param samples Number of models created in each iteration. The default is 100.
 #'@param elite_samples The number of best-performing models that are used to update the parameter distribution. The default is 10.
-#'@param threads Number of CPU kernels used. The default is the number of available cores minus 1.
+#'@param threads Number of CPU cores used. The default is the number of available cores minus 1.
+
+#'@examples
+#'\dontrun{
+#' data(liver)
+#' liver$sex <- ifelse(liver$sex == "Female", 1,0) # Recoding categorical feature because the cross-entropy method only works with numeric features.
+#' model_tree <- fftree(data = liver, formula = diagnosis~., method = "cross-entropy", cross_entropy_parameters = cross_entropy_control(starts = 5))
+#' model_tally <- tally(data = liver, formula = diagnosis~., method = "cross-entropy", cross_entropy_parameters = cross_entropy_control(starts = 5))
+#' }
 
 
 #'@export
@@ -232,7 +240,7 @@ tally_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thr
   tally$categorical <- split_object@splits$categorical
 
   model <- new("tallyModel", tally = tally)
-  model@type$algorithm = "cross-entropy"
+  model@parameters$algorithm = "cross-entropy"
   model@formula <- stats::formula(data_input_not_rescaled)
   model@class_labels <- as.character(sort(unique(data_input_not_rescaled[,1])))
   return(model)
@@ -482,6 +490,7 @@ fft_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thres
   cueix <- treeOut@tree$matrix[,"Cue"]
   dirix <- treeOut@tree$matrix[,"side"]
   treeOut@tree$matrix[,"splitPoint"] <- smoothThresholds(data_input_not_rescaled, split_points,cueix,dirix)
+  treeOut@parameters$algorithm = "cross-entropy"
   return(treeOut)
 }
 

@@ -27,7 +27,6 @@ LazyData: true
 Collate: 
     'RcppExports.R'
     'cross-entropy.R'
-    'diabetes.R'
     'fft.R'
     'fft.predict.R'
     'helper.R'

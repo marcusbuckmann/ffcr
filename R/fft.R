@@ -1,30 +1,37 @@
 #' class for fast-and-frugal-tree models
 #'
 #' An S4 class to represent a fast-and-frugal tree model
-#'@slot call an image of the call that produced the object.
-#'@slot type induction algorithm used to train the fast-and-frugal tree.
-#'@slot performance list showing fitting and cross-validated performance.
-#'@slot formula \link[stats]{formula} object of the model.
-#'@slot weights a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
-#'@slot training_data data that was used to train the model
-#'@slot tree representation of the tree
-#'@slot prior the proportion of objects in the positive class in the training set.
-#'@slot class_labels a vector of length 2 containing the class labels. The second entry is referred to as the positive class.
+#'@slot call An image of the call that produced the object.
+#'@slot formula \link[stats]{formula} Object of the model.
+#'@slot parameters Parameters used to train the fast-and-frugal tree.
+#'@slot performance List showing fitting and cross-validated performance.
+#'@slot class_labels A vector of length 2 containing the class labels. The second entry is referred to as the positive class.
+#'@slot weights A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@slot prior The proportion of objects in the positive class in the training set.
+#'@slot tree Representation of the tree.
+#'@slot training_data Data that was used to train the model
+
 #'@export
-setClass("fftreeModel",representation(type = "list",tree = "list",
-                                      performance = "list",
-                                      call = "call", formula = "formula", class_labels = "character",
-                                      training_data = "data.frame", weights = "numeric",
-                                      prior = "numeric"),
-         prototype(formula = formula(NULL), type = list(
-           method = "empty",
-           use_features_once = "empty",
-           split_function = "empty",
-           use_features_once = "empty",
-           n_nodes = "empty",
-           max_depth = "empty",
-           cross_entropy_parameters = "empty"
-         ))
+setClass("fftreeModel", representation(
+  call = "call",
+  formula = "formula",
+  parameters = "list",
+  performance = "list",
+  class_labels = "character",
+  weights = "numeric",
+  prior = "numeric",
+  tree = "list",
+  training_data = "data.frame"
+),
+prototype(formula = formula(NULL), parameters = list(
+  method = "empty",
+  use_features_once = "empty",
+  split_function = "empty",
+  use_features_once = "empty",
+  n_nodes = "empty",
+  max_depth = "empty",
+  cross_entropy_parameters = "empty"
+))
 )
 
 
@@ -34,24 +41,23 @@ setClass("fftreeModel",representation(type = "list",tree = "list",
 #'
 #'\code{fftree} is used to fit fast-and-frugal trees.
 
-#'@param data an object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The criterion can either be a factor with two levels or an integer \code{(0,1)}. The \emph{positive class} is the second factor level (\code{levels(data$criterion)[2]}), or \code{1} if the criterion is numeric.
+#'@param data An object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The response variable can either be a factor with two levels or an integer vector with values \code{0,1}.
 #'@param formula \code{\link[stats]{formula}} (optional). If \code{formula} is not provided, the first column of the data argument is used as the response variable and all other columns as predictors.
-#'@param method type of induction method for the fast-and-frugal tree:
+#'@param method Type of induction method for the fast-and-frugal tree:
 #' \itemize{
 #' \item{greedy (default and recommended)}
 #' \item{basic}
 #' \item{cross-entropy}
 #' }
-#'@param split_function Which function should be used to determine the splitting values on numeric features. This only applies to fast-and-frugal trees with the 'basic' or 'greedy' method.
-#'
-#'By default Gini entropy ('gini') is used. Other options are Shannon entropy ('entropy') and 'median'.
-#'@param max_depth set maximum number of nodes of the fast-and-frugal tree (default: 6)
-#'@param weights a numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@param max_depth Maximum number of nodes of the fast-and-frugal tree (default: 6).
+#'@param split_function Function should be used to determine the splitting values on numeric features. This only applies to fast-and-frugal trees trained with the 'basic' or 'greedy' method. By default Gini entropy ('gini') is used. Other options are Shannon entropy ('entropy') and 'median'.
+#'@param weights A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight given to instances in the positive class, the second entry the weight of instances given to objects in the negative class.
 #'(\emph{see examples}).
-#'@param pruning by default pruning is not employed (\code{FALSE}). If the argument is set to \code{TRUE} the tree is pruned using cross-validation.
-#'@param cv If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model.
-#'@param use_features_once if \code{TRUE} an attribute is used only once in a tree. If \code{FALSE}, a feature may be split several times. Note that, by construction, the basic method can only use each feature once.
-#'@param cross_entropy_parameters hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.
+#'@param pruning If the argument is set to \code{TRUE} the tree is pruned using cross-validation. This can increase the training time substantially and is not recommended when using the computationally costly 'cross-entropy' method.
+#'@param cv If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.
+#'@param use_features_once If \code{TRUE} an attribute is used only once in a tree. If \code{FALSE}, a feature may be split several times. Note that, by construction, the basic method can only use each feature once. The default value is \code{TRUE}.
+#'@param cross_entropy_parameters Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed. By default cross-validation
+#' is not used.
 
 #'@return A \linkS4class{fftreeModel} object.
 
@@ -72,8 +78,8 @@ setClass("fftreeModel",representation(type = "list",tree = "list",
 setGeneric("fftree", function(data,
                               formula = stats::as.formula(data),
                               method = "greedy",
-                              split_function = "gini",
                               max_depth = 6,
+                              split_function = "gini",
                               weights = c(1,1),
                               pruning = FALSE,
                               cv = FALSE,
@@ -85,8 +91,8 @@ setMethod("fftree", signature(data = "data.frame"),
           function(data,
                    formula = stats::as.formula(data.frame(data)),
                    method = "greedy",
-                   split_function = "gini",
                    max_depth = 6,
+                   split_function = "gini",
                    weights = c(1,1),
                    pruning = FALSE,
                    cv = FALSE,
@@ -152,8 +158,8 @@ setMethod("fftree", signature(data = "matrix"),
           function(data,
                    formula = stats::as.formula(data.frame(data)),
                    method = "greedy",
-                   split_function = "gini",
                    max_depth = 6,
+                   split_function = "gini",
                    weights = c(1,1),
                    pruning = FALSE,
                    cv = FALSE,
@@ -268,18 +274,18 @@ buildTree <-  function(data,
   model@class_labels <- as.character(class_labels)
   model@training_data <- data # this was x before
   model@weights <- weights
-  model@type$method = method
-  model@type$split_function = split_function
-  model@type$use_features_once = !multiple_splits
-  model@type$n_nodes <- nrow(model@tree$matrix) - 1
-  model@type$max_depth <- maximum_size
-  model@type$cross_entropy_parameters <- cross_entropy_parameters
+  model@parameters$method = method
+  model@parameters$split_function = split_function
+  model@parameters$use_features_once = !multiple_splits
+  model@parameters$n_nodes <- nrow(model@tree$matrix) - 1
+  model@parameters$max_depth <- maximum_size
+  model@parameters$cross_entropy_parameters <- cross_entropy_parameters
 
   if(pruning)
     model <- pruneCV(model, data, include_empty = TRUE, costs = costs)
 
-    model@performance$fit <- predict(model, data_original, "metric")
-    model@performance$fit.structure <- computeStructure(model, data_original)
+  model@performance$fit <- predict(model, data_original, "metric")
+  model@performance$fit.structure <- computeStructure(model, data_original)
 
   return(model)
 }

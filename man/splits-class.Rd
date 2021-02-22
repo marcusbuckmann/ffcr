@@ -10,20 +10,20 @@ An S4 class to represent a split object
 \section{Slots}{
 
 \describe{
-\item{\code{call}}{an image of the call that produced the object.}
+\item{\code{call}}{An image of the call that produced the object.}
 
-\item{\code{type}}{splitting function employed to split cues.}
+\item{\code{type}}{Splitting function employed to split cues.}
 
 \item{\code{formula}}{\link[stats]{formula} object of the model.}
 
-\item{\code{weights}}{a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
+\item{\code{class_labels}}{A vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
 
-\item{\code{training_data}}{data that was used to train the model}
+\item{\code{weights}}{A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
 
-\item{\code{splits}}{representation of the splits}
+\item{\code{training_data}}{Data that was used to train the model}
 
-\item{\code{prior}}{the proportion of objects in the positive class in the training set.}
+\item{\code{splits}}{Representation of the splits}
 
-\item{\code{class_labels}}{a vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
+\item{\code{prior}}{The proportion of objects in the positive class in the training set.}
 }}
 

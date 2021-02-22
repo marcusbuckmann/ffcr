@@ -7,7 +7,7 @@ setMethod("show", signature("tallyModel"),
           function(object) {
 
             cat("Tallying object\n")
-            cat("  type:", dQuote(object@type$algorithm),"\n")
+            cat("Trained with :", dQuote(object@parameters$algorithm), "method. \n")
 
             cat("\nCall: \n")
             print(object@call)
@@ -32,7 +32,7 @@ setMethod("show", signature("tallyModel"),
               # names(tab)[1:2] <- format(names(tab)[1:2], width = name_width, justify = "centre")
               print(tab, row.names = FALSE, right = FALSE)
 
-              cat("\nFitting:")
+              cat("\nFitting performance:")
               tab <- data.frame(" " = paste0("   ", names(performance_train)), "  " = format(round(performance_train,2)))
               colnames(tab) <- c(" ", "  ")
               print(tab[1:5, ], row.names = FALSE, right = FALSE)
@@ -40,7 +40,7 @@ setMethod("show", signature("tallyModel"),
 
             if(length(object@performance$cv.performance)>0){
               cat("\n")
-              cat("Cross-validation:")
+              cat("Cross-validation performance:")
               performance_cv <- object@performance$cv.performance
               tab <- data.frame(" " = paste0("   ", names(performance_cv)), "  " = format(round(performance_cv,2)))
               colnames(tab) <- c(" ", "  ")

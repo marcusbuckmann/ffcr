@@ -38,9 +38,12 @@ pruneFit <- function(model, data.input, weights){
 
 
 pruneCV <- function(model.input, data.input, costs = c(.5,.5), include_empty = TRUE){
+
+
   weights <- getWeightsFromCost(costs, getPrior(data.input))
   model.input <- pruneFit(model.input, data.input, weights = weights)
   n.objects <- nrow(data.input)
+
   if(n.objects < 3)
     return(model.input)
   if(nrow(model.input@tree$matrix) <= 2 & !include_empty)
@@ -49,6 +52,7 @@ pruneCV <- function(model.input, data.input, costs = c(.5,.5), include_empty = T
   folds <- createFolds(n.objects)
   n.folds <- max(folds[,1])
   max.splits <- nrow(model.input@tree$matrix)-1
+
   if(include_empty)
     max.splits <- max.splits + 1
 
@@ -61,16 +65,16 @@ pruneCV <- function(model.input, data.input, costs = c(.5,.5), include_empty = T
       next
     test.data <- data.input[test.ix,]
     max.tree <- fftree(train.data,
-                       method = model.input@type$algorithm,
-                       split_function = model.input@type$split_function,
+                       method = model.input@parameters$algorithm,
+                       split_function = model.input@parameters$split_function,
                        weights = costs,
-                       max_depth = model.input@type$max_depth,
-                       use_features_once = model.input@type$use_features_once,
-                       cross_entropy_parameters = model.input@type$cross_entropy_parameters,
+                       max_depth = model.input@parameters$max_depth,
+                       use_features_once = model.input@parameters$use_features_once,
+                       cross_entropy_parameters = model.input@parameters$cross_entropy_parameters,
                        cv = FALSE)
 
-;    model.list <- getFFTList(max.tree, include_empty = include_empty)
-    n.splits <- sapply(model.list,function(x)x@type$n_nodes) + as.numeric(include_empty)
+    model.list <- getFFTList(max.tree, include_empty = include_empty)
+    n.splits <- sapply(model.list,function(x)x@parameters$n_nodes) + as.numeric(include_empty)
     # filter models that are bigger than inital models
     ix.out <- n.splits > max.splits
     n.splits <- n.splits[!ix.out]
@@ -126,14 +130,14 @@ getFFTList <- function(model.input, include_empty = F){
     model.add <- model.input
     model.add@tree$matrix <- model.add@tree$matrix[1:i, ,drop = F]
     model.add@tree$categorical <- model.add@tree$categorical[1:i]
-    model.add@type$nSplits <- i
+    model.add@parameters$nSplits <- i
     model.add <- addLastLeaf(model.add)
     models[[i]] <- model.add
   }
   if(include_empty){
     empty <- models[[1]]
     empty@tree$matrix[,"exit"] <- sum(model.input@tree$matrix[1,c(">+", "<=+")])/sum(model.input@tree$matrix[1, c(">+",">-","<=+", "<=-")])
-    empty@type$nSplits <- 0
+    empty@parameters$nSplits <- 0
     models <- c(empty,models)
   }
   return(models)

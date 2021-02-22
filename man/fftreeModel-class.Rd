@@ -10,22 +10,22 @@ An S4 class to represent a fast-and-frugal tree model
 \section{Slots}{
 
 \describe{
-\item{\code{call}}{an image of the call that produced the object.}
+\item{\code{call}}{An image of the call that produced the object.}
 
-\item{\code{type}}{induction algorithm used to train the fast-and-frugal tree.}
+\item{\code{formula}}{\link[stats]{formula} Object of the model.}
 
-\item{\code{performance}}{list showing fitting and cross-validated performance.}
+\item{\code{parameters}}{Parameters used to train the fast-and-frugal tree.}
 
-\item{\code{formula}}{\link[stats]{formula} object of the model.}
+\item{\code{performance}}{List showing fitting and cross-validated performance.}
 
-\item{\code{weights}}{a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
+\item{\code{class_labels}}{A vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
 
-\item{\code{training_data}}{data that was used to train the model}
+\item{\code{weights}}{A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
 
-\item{\code{tree}}{representation of the tree}
+\item{\code{prior}}{The proportion of objects in the positive class in the training set.}
 
-\item{\code{prior}}{the proportion of objects in the positive class in the training set.}
+\item{\code{tree}}{Representation of the tree.}
 
-\item{\code{class_labels}}{a vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
+\item{\code{training_data}}{Data that was used to train the model}
 }}
 

@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ [@katsikopoulos2021] describes these models, their applications and the algorithms to construct these in detail. 
+The *ffcr* R package is used to construct two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ [@katsikopoulos2021] describes these models, their applications and the algorithms to construct them in detail. 
 
 
 A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
@@ -35,16 +35,16 @@ We start with loading the package and the data.
 
 ```{r}
 # library(ffcr)
-devtools::load_all(".")
+devtools::load_all()
 data(liver)
 ```
 
 
 
-# Learning fast-and-frugal trees
+# Training fast-and-frugal trees
 
 
-The `ffcr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *best-fit*^[We use the cross-entropy method [@rubinstein1999]. It does not guarantee to find the best possible tree but produces very accurate trees, on average.] and are described in the book.
+The `ffcr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *cross-entropy*.^[In the book [@katsikopoulos2021], we refer to the cross-entropy optimization [@rubinstein1999] as the *best-fit* method. It does not guarantee to find the best possible tree but often produces more accurate trees than the other simpler methods.]
 
 <!---
 The *naive* method is the simplest and computationally least demanding approach. It is called naive, because the usefulness of each feature is evaluated independently of the other features. For each feature, the naive method identifies a splitting point that best separate objects of the two classes in the data. By default, the package uses *Gini impurity* to judge the goodness of a split. The naive method by stacking the features according to the quality of the split points, i.e. the feature that best separates the classes constitute the root of the tree. Now that the order of the features is established, we need to determine the exists of the tree, which side of a split exits the tree and which class is predicted. All observations in the data set are sent through the tree. In each node of the tree, the branch of the split that is purer exits the tree. Purity is measured by the proportion of the classes falling into a branch. The purest branch only contains observations of one class, the least pure branch contains the same number of observations of both classes. The exit branch predicts the majority class of those object falling into the branch. The objects not exiting the tree are send to the next node and determine its exit. The process is completed until all object have exited the tree.
@@ -58,23 +58,21 @@ Using the greedy and the cross-entropy method, a feature can be split several ti
 
 
 
-## Training a fast-and-frugal tree
-
 We train a fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument.
 
 ```{r}
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
+model <- fftree(liver, method = "greedy", max_depth = 4)
 ```
 
 
-Alternatively, we can call the function using the formula syntax. Here we train the fast-and-frugal tree using only only a few selected features.
+Alternatively, we can call the function using the formula syntax. Here we train the fast-and-frugal tree using only a few selected features.
 
 ```{r, eval=FALSE}
-fftree(diagnosis ~ sex + age + albumin + proteins + aspartate  , data = liver)
+fftree(diagnosis ~ age + albumin + proteins + aspartate, data = liver)
 ```
 
 
-The model object shows the structure of the trees and its performance on the data set.
+Printing the model shows the structure of the tree and its fitting performance in the data set. 
 
 ```{r}
 print(model)

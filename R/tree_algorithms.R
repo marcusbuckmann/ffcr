@@ -16,7 +16,7 @@ createUnconditionalFFT <- function(splits.input, orderFunction, opposite_class =
 
 
   model.output <- new("fftreeModel", tree = list(matrix = model, categorical = category_information))
-  model.output@type$algorithm = "naive"
+  model.output@parameters$algorithm = "naive"
 
   model.output <- addLastLeaf(model.output, opposite_class = opposite_class)
 
@@ -45,7 +45,7 @@ createRecursiveFFT <- function(data.input, orderFunction, splittingFunction="gin
     model.output <- rbind(model.output,add.model)
     category_information <- c(category_information,add.category_information)
     model.test <- new("fftreeModel",tree =  list(matrix = add.model, categorical = add.category_information))
-    model.test@type$algorithm <- "modelPart"
+    model.test@parameters$algorithm <- "modelPart"
     model.test@training_data <- data.input
     objects.decided <- FFTtest(model.test, data.use[, -1,drop = F])
     data.use <- data.use[is.na(objects.decided),,drop=F]
@@ -61,7 +61,7 @@ createRecursiveFFT <- function(data.input, orderFunction, splittingFunction="gin
   model.output[,9]<-1:nrow(model.output)
 
   model <- new("fftreeModel", tree = list(matrix = model.output, categorical = category_information))
-  model@type$algorithm = "recursive"
+  model@parameters$algorithm = "recursive"
   model <- addLastLeaf(model)
   return(model)
 }

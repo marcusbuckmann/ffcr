@@ -10,10 +10,10 @@ tally(
   data,
   formula = stats::as.formula(data.frame(data)),
   method = "basic",
+  max_size = 6,
   split_function = "gini",
   weights = c(1, 1),
   cv = FALSE,
-  max_size = 6,
   cross_entropy_parameters = cross_entropy_control()
 )
 
@@ -21,10 +21,10 @@ tally(
   data,
   formula = stats::as.formula(data.frame(data)),
   method = "basic",
+  max_size = 6,
   split_function = "gini",
   weights = c(1, 1),
   cv = FALSE,
-  max_size = 6,
   cross_entropy_parameters = cross_entropy_control()
 )
 
@@ -32,35 +32,34 @@ tally(
   data,
   formula = stats::as.formula(data.frame(data)),
   method = "basic",
+  max_size = 6,
   split_function = "gini",
   weights = c(1, 1),
   cv = FALSE,
-  max_size = 6,
   cross_entropy_parameters = cross_entropy_control()
 )
 }
 \arguments{
-\item{data}{an object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The criterion can either be a factor with two levels or an integer \code{(0,1)}. The \emph{positive class} is the second factor level (\code{levels(data$criterion)[2]}), or \code{1} if the criterion is numeric.}
+\item{data}{An object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The response variable can either be a factor with two levels or an integer vector with values \code{0,1}.}
 
 \item{formula}{\code{\link[stats]{formula}} (optional). If \code{formula} is not provided, the first column of the data argument is used as the response variable and all other columns as predictors.}
 
-\item{method}{type of induction method for the fast-and-frugal tree:
+\item{method}{Type of induction method for the fast-and-frugal tree:
 \itemize{
-\item{regression}
+\item{basic} (default)
 \item{cross-entropy}
 }}
 
-\item{split_function}{Which function should be used to determine the splitting values on numeric features. This only applies to tallying models trained with the 'regression' method.
-to the By default Gini entropy ('gini') is used. Other options are Shannono entropy ('entropy') and 'median'.}
+\item{max_size}{Maximum number of features that contribute to the tallying model (default: 6)}
 
-\item{weights}{a numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+\item{split_function}{Function should be used to determine the splitting values on numeric features. This only applies to tallying models trained with the 'basic' method. By default Gini entropy ('gini') is used. Other options are Shannono entropy ('entropy') and 'median'.}
+
+\item{weights}{A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
 (\emph{see examples}).}
 
-\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model.}
+\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.}
 
-\item{max_size}{set maximum number of features that contribute to the tallying model (default:  6)}
-
-\item{cross_entropy_parameters}{hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.}
+\item{cross_entropy_parameters}{Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.}
 }
 \value{
 A \linkS4class{tallyModel} object.

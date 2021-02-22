@@ -1,11 +1,11 @@
 #' Liver patients
 #'
-#' A dataset containing containing 416 liver and 167 non liver patient records.
-#' The  data was collected in the northeast of Andhra Pradesh, India.
+#' A dataset containing containing 414 liver and 165 non liver patient records.
+#' The data was collected in the northeast of Andhra Pradesh, India.
 #'
 #' @format A data frame with 579 rows and 11 variables:
 #' \describe{
-#'   \item{diagnosis}{whether subject is liver patient (416) or not (167), labeled by experts}
+#'   \item{diagnosis}{whether subject is liver patient (414) or not (165), labeled by experts}
 #'   \item{age}{age of patient}
 #'   \item{sex}{either \code{'female'} or \code{'male'}}
 #'   \item{totalBilirubin}{total bilirubin concentration in the blood}

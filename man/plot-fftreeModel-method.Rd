@@ -4,7 +4,14 @@
 \alias{plot,fftreeModel-method}
 \title{plots fast-and-frugal tree}
 \usage{
-\S4method{plot}{fftreeModel}(x, probabilities = F, legend = T, ...)
+\S4method{plot}{fftreeModel}(
+  x,
+  probabilities = FALSE,
+  legend = TRUE,
+  class_labels = FALSE,
+  colors = c("cornflowerblue", "brown3"),
+  ...
+)
 }
 \arguments{
 \item{x}{An object of type \linkS4class{fftreeModel-class}}
@@ -12,6 +19,10 @@
 \item{probabilities}{If \code{TRUE} probability estimates are shown for each leaf. If \code{FALSE}, predicted class labels are shown.}
 
 \item{legend}{If \code{TRUE} legend is shown.}
+
+\item{class_labels}{If \code{TRUE} class labels are shown for each leaf.}
+
+\item{colors}{Vector of length 2 to set the colors of the two classes. Default: \code{c("cornflowerblue""brown3")}.}
 
 \item{...}{optional parameters passed to low level function}
 }

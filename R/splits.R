@@ -2,14 +2,14 @@ NULL
 #' class for split object
 #'
 #' An S4 class to represent a split object
-#'@slot call an image of the call that produced the object.
-#'@slot type splitting function employed to split cues.
+#'@slot call An image of the call that produced the object.
+#'@slot type Splitting function employed to split cues.
 #'@slot formula \link[stats]{formula} object of the model.
-#'@slot weights a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
-#'@slot training_data data that was used to train the model
-#'@slot splits representation of the splits
-#'@slot prior the proportion of objects in the positive class in the training set.
-#'@slot class_labels a vector of length 2 containing the class labels. The second entry is referred to as the positive class.
+#'@slot class_labels A vector of length 2 containing the class labels. The second entry is referred to as the positive class.
+#'@slot weights A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@slot training_data Data that was used to train the model
+#'@slot splits Representation of the splits
+#'@slot prior The proportion of objects in the positive class in the training set.
 
 #' @export
 setClass("splits", representation(type = "character",
@@ -23,13 +23,13 @@ setClass("splits", representation(type = "character",
          prototype(formula = formula(NULL),weights = c(1,1))
 )
 
-#'Finding split points for cues
+#'Splitting features
 #'
-#'\code{splitCues} is used to find split points for numeric and categorical cues.
+#'\code{splitFeatures} is used internally by \code{\link{fftree}} and \code{\link{tally}} to find split points on numeric and categorical features.
 
 #' @param data an object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The criterion can either be a factor with two levels or an integer \code{(0,1)}. The \emph{positive class} is the second factor level (\code{levels(data$criterion)[2]}), or \code{1} if the criterion is numeric.
 #' @param formula \code{\link[stats]{formula}} (optional). If \code{formula} is not provided, the first column of the data argument is used as the response variable and all other columns as predictors.
-#' @param splits specifies the method used to find a splitting point on numeric and binary cues.
+#' @param splits specifies the method used to find a splitting point on numeric and binary features
 #' \itemize{
 #' \item{gini (default)}
 #' \item{entropy}
@@ -39,12 +39,12 @@ setClass("splits", representation(type = "character",
 #'@param ... optional parameters passed to low level function
 #'@examples
 #' data(liver)
-#' splits <- splitCues(data = liver, formula = diagnosis~., splits = "median")
+#' splits <- splitFeatures(data = liver, formula = diagnosis~., splits = "median")
 #'@return A \linkS4class{splits} object.
 #' @export
-setGeneric("splitCues", function(data,formula = stats::as.formula(data), ...) standardGeneric("splitCues"))
-#' @rdname splitCues
-setMethod("splitCues", signature(data = "data.frame"),
+setGeneric("splitFeatures", function(data,formula = stats::as.formula(data), ...) standardGeneric("splitFeatures"))
+#' @rdname splitFeatures
+setMethod("splitFeatures", signature(data = "data.frame"),
           function(data,
                    formula = as.formula(data.frame(data)),
                    splits = "gini",
@@ -53,14 +53,14 @@ setMethod("splitCues", signature(data = "data.frame"),
           {
 
             data <- model.frame(formula = formula, data = data, na.action = NULL)
-            split_profile <- splitCuesInternal(data = data,
+            split_profile <- splitFeaturesInternal(data = data,
                                                formula = formula,
                                                splits = splits,
                                                weights = weights,
                                                ...)
             cl <- match.call(expand.dots = TRUE)
             cl$data <- substitute(data, parent.frame())
-            cl[[1]] <- as.name("splitCues")
+            cl[[1]] <- as.name("splitFeatures")
             cl[["formula"]] <- substitute(formula, parent.frame())
             split_profile@call <- cl
             return(split_profile)
@@ -68,7 +68,7 @@ setMethod("splitCues", signature(data = "data.frame"),
           })
 
 
-splitCuesInternal <- function(data,
+splitFeaturesInternal <- function(data,
                               formula = as.formula(data.frame(data)),
                               splits = "gini",
                               weights = c(1,1),
@@ -99,8 +99,8 @@ splitCuesInternal <- function(data,
 
 }
 
-#' @rdname splitCues
-setMethod("splitCues", signature(data = "matrix"),
+#' @rdname splitFeatures
+setMethod("splitFeatures", signature(data = "matrix"),
           function(data,
                    formula = stats::as.formula(data.frame(data)),
                    splits = "gini",
@@ -108,7 +108,7 @@ setMethod("splitCues", signature(data = "matrix"),
                    ...)
           {
             data <- data.frame(data)
-            split_profile <- splitCues(data.input = data, formula = formula,
+            split_profile <- splitFeatures(data.input = data, formula = formula,
                                        splits = splits,
                                        weights = weights,
                                        ...)
@@ -129,7 +129,7 @@ setMethod("splitCues", signature(data = "matrix"),
 #'@param object An object of type \linkS4class{splits-splits}
 setMethod("show", signature("splits"),
           function(object) {
-            cat("Cues split by ")
+            cat("Features split by ")
             cat(dQuote(object@type),"\n")
             cat("\nCall: \n")
             print(object@call)
@@ -140,22 +140,22 @@ setMethod("show", signature("splits"),
             cat("\n")
             m <- object@splits$matrix
             category_information <- object@splits$categorical
-            cue.names <- rownames(m)
+            cue_names <- rownames(m)
             cue.thresholds <- m[,"splitPoint"]
             n <- nrow(m)
             for(i in 1:n){
               r <- m[i,]
               if(is.na(category_information[[i]][1])){
-                node <- paste(cue.names[i], ">", round(cue.thresholds[i],3))
+                node <- paste(cue_names[i], ">", round(cue.thresholds[i],3))
               } else{
-                levels <- levels(object@training_data[,cue.names[i]])
-                levels.out <- levels[!levels %in% category_information[[i]]]
-                node <- paste(cue.names[i],"=", paste(levels.out, collapse = ", "))
+                levels <- unique(object@training_data[,cue_names[i]])
+                levels_out <- levels[!levels %in% category_information[[i]]]
+                node <- paste(cue_names[i],"=", paste(levels_out, collapse = ", "))
               }
 
               confusion.matrix <- array(NA, dim=c(2,2))
-              confusion.matrix[1,] <- c(r[">+"],r[">-"])
-              confusion.matrix[2,] <- c(r["<=+"], r["<=-"])
+              confusion.matrix[1,] <- c(r[">+"],r["<=+"])
+              confusion.matrix[2,] <- c(r[">-"], r["<=-"])
               colnames(confusion.matrix) <- c("yes","no")
               rownames(confusion.matrix) <- c(paste("Class",object@class_labels[2]),
                                               paste("     ",object@class_labels[1]))

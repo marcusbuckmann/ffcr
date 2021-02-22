@@ -1,49 +1,47 @@
 #' class for tallying models
 #'
-#' An S4 class to represent a fast-and-frugal tree model
-#'@slot call an image of the call that produced the object.
-#'@slot type induction algorithm used to train the fast-and-frugal tree.
-#'@slot performance list showing fitting and cross-validated performance.
+#' An S4 class to represent a tallying tree model
+#'@slot call An image of the call that produced the object.
 #'@slot formula \link[stats]{formula} object of the model.
-#'@slot weights a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
-#'@slot training_data data that was used to train the model
-#'@slot tally representation of the tallying model
-#'@slot prior the proportion of objects in the positive class in the training set.
-#'@slot class_labels a vector of length 2 containing the class labels. The second entry is referred to as the positive class.
-#'@slot split_function how numeric features are split when 'basic' method is used.
+#'@slot parameters Parameters used to train the tallying model.
+#'@slot performance List showing fitting and cross-validated performance.
+#'@slot class_labels A vector of length 2 containing the class labels. The second entry is referred to as the positive class.
+#'@slot weights A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@slot prior The proportion of objects in the positive class in the training set.
+#'@slot tally Representation of the tallying model
+#'@slot split_function How numeric features are split when 'basic' method is used.
+#'@slot training_data Data that was used to train the model
 #'@export
 setClass("tallyModel", representation(
   call = "call",
-  type = "list",
-  performance = "list",
   formula = "formula",
-  weights = "numeric",
-  training_data = "data.frame",
-  tally = "list",
-  prior = "numeric",
+  parameters = "list",
+  performance = "list",
   class_labels = "character",
-  split_function = "character"),
-  prototype(formula = formula(NULL), type = list(algorithm = "empty")
+  weights = "numeric",
+  prior = "numeric",
+  tally = "list",
+  split_function = "character",
+  training_data = "data.frame"),
+  prototype(formula = formula(NULL), parameters = list(algorithm = "empty")
   )
 )
 
-
 #'\code{tally} is used to fit a tallying model.
 
-#'@param data an object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The criterion can either be a factor with two levels or an integer \code{(0,1)}. The \emph{positive class} is the second factor level (\code{levels(data$criterion)[2]}), or \code{1} if the criterion is numeric.
+#'@param data An object of class \code{\link[base]{data.frame}} or \code{\link[base]{matrix}}. The response variable can either be a factor with two levels or an integer vector with values \code{0,1}.
 #'@param formula \code{\link[stats]{formula}} (optional). If \code{formula} is not provided, the first column of the data argument is used as the response variable and all other columns as predictors.
-#'@param method type of induction method for the fast-and-frugal tree:
+#'@param method Type of induction method for the fast-and-frugal tree:
 #' \itemize{
-#' \item{regression}
+#' \item{basic} (default)
 #' \item{cross-entropy}
 #' }
-#'@param split_function Which function should be used to determine the splitting values on numeric features. This only applies to tallying models trained with the 'regression' method.
-#' to the By default Gini entropy ('gini') is used. Other options are Shannono entropy ('entropy') and 'median'.
-#'@param max_size set maximum number of features that contribute to the tallying model (default:  6)
-#'@param weights a numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@param max_size Maximum number of features that contribute to the tallying model (default: 6)
+#'@param split_function Function should be used to determine the splitting values on numeric features. This only applies to tallying models trained with the 'basic' method. By default Gini entropy ('gini') is used. Other options are Shannono entropy ('entropy') and 'median'.
+#'@param weights A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
 #'(\emph{see examples}).
-#'@param cv If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model.
-#'@param cross_entropy_parameters hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.
+#'@param cv If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.
+#'@param cross_entropy_parameters Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.
 
 #'@return A \linkS4class{tallyModel} object.
 
@@ -65,10 +63,10 @@ setClass("tallyModel", representation(
 setGeneric("tally", function(data,
                              formula = stats::as.formula(data.frame(data)),
                              method = "basic",
+                             max_size = 6,
                              split_function = "gini",
                              weights = c(1,1),
                              cv = FALSE,
-                             max_size = 6,
                              cross_entropy_parameters = cross_entropy_control()
 ) standardGeneric("tally"))
 #' @rdname tally
@@ -76,10 +74,10 @@ setMethod("tally", signature(data = "data.frame"),
           function(data,
                    formula = stats::as.formula(data.frame(data)),
                    method = "basic",
+                   max_size = 6,
                    split_function = "gini",
                    weights = c(1,1),
                    cv = FALSE,
-                   max_size = 6,
                    cross_entropy_parameters = cross_entropy_control())
           {
 
@@ -135,10 +133,10 @@ setMethod("tally", signature(data = "matrix"),
           function(data,
                    formula = stats::as.formula(data.frame(data)),
                    method = "basic",
+                   max_size = 6,
                    split_function = "gini",
                    weights = c(1,1),
                    cv = FALSE,
-                   max_size = 6,
                    cross_entropy_parameters = cross_entropy_control()
           )
           {
@@ -217,13 +215,7 @@ buildTallying <- function(data,
     tally$weights <- model_list[-1]
     tally$matrix <- splitted$split_matrix
     tally$categorical <- splitted$categorical
-
     model <- new("tallyModel", tally = tally)
-    model@type$algorithm = method
-
-    model@prior <- prior
-    model@formula <- stats::formula(data)
-
   }
 
   if(method == "cross-entropy"){
@@ -237,11 +229,12 @@ buildTallying <- function(data,
       cross_entropy_parameters
     ))
   }
-
+  model@prior <- prior
+  model@formula <- stats::formula(data)
   model@class_labels <- as.character(class_labels)
   model@training_data <- data
   model@weights <- weights
-  model@type$algorithm = method
+  model@parameters$algorithm = method
   model@performance$fit <- predict(model, data, "metric")
   return(model)
 }

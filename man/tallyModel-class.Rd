@@ -5,29 +5,29 @@
 \alias{tallyModel-class}
 \title{class for tallying models}
 \description{
-An S4 class to represent a fast-and-frugal tree model
+An S4 class to represent a tallying tree model
 }
 \section{Slots}{
 
 \describe{
-\item{\code{call}}{an image of the call that produced the object.}
-
-\item{\code{type}}{induction algorithm used to train the fast-and-frugal tree.}
-
-\item{\code{performance}}{list showing fitting and cross-validated performance.}
+\item{\code{call}}{An image of the call that produced the object.}
 
 \item{\code{formula}}{\link[stats]{formula} object of the model.}
 
-\item{\code{weights}}{a numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
+\item{\code{parameters}}{Parameters used to train the tallying model.}
 
-\item{\code{training_data}}{data that was used to train the model}
+\item{\code{performance}}{List showing fitting and cross-validated performance.}
 
-\item{\code{tally}}{representation of the tallying model}
+\item{\code{class_labels}}{A vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
 
-\item{\code{prior}}{the proportion of objects in the positive class in the training set.}
+\item{\code{weights}}{A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
 
-\item{\code{class_labels}}{a vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
+\item{\code{prior}}{The proportion of objects in the positive class in the training set.}
 
-\item{\code{split_function}}{how numeric features are split when 'basic' method is used.}
+\item{\code{tally}}{Representation of the tallying model}
+
+\item{\code{split_function}}{How numeric features are split when 'basic' method is used.}
+
+\item{\code{training_data}}{Data that was used to train the model}
 }}
 

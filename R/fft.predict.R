@@ -62,11 +62,6 @@ computePerformance <- function(criterion, predicted, threshold = .5, random = FA
   if(random & threshold %=% .5)
     predicted.t[predicted == threshold] <- round(stats::runif(sum(predicted==threshold)))
 
-  if(length(criterion) >1 && stats::sd(criterion) > 0){
-    auc <- auroc(criterion,predicted) # see: https://blog.mbq.me/augh-roc/
-  } else {
-    auc<-NA
-  }
   tp <- as.numeric(sum(predicted.t == 1 & criterion == 1)) * weights[1]
   fp <- as.numeric(sum(predicted.t == 1 & criterion == 0)) * weights[2]
   tn <- as.numeric(sum(predicted.t == 0 & criterion == 0)) * weights[2]
