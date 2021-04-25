@@ -14,7 +14,7 @@ test_that("givenModelTestPredictions", {
                           model@tree$matrix[2,"exit"],
                           model@tree$matrix[3,"exit"],
                           model@tree$matrix[1,"exit"])
-  expect_equal(predict(model, test_set, type = "probability")[,2], correct_prediction)
+  expect_equal(predict(model, test_set, type = "numeric")[,2], correct_prediction)
 }
 )
 

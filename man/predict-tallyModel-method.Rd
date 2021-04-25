@@ -11,7 +11,7 @@
 
 \item{newdata}{a data frame or matrix containing new data}
 
-\item{type}{character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{probability} returns a matrix of class probabilities, \code{metric} returns the classification performance.}
+\item{type}{character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{metric} returns the classification performance.}
 }
 \description{
 Return predicted responses or measures of performance from a fitted \linkS4class{tallyModel-class} object

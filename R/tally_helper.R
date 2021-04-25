@@ -36,7 +36,7 @@ simMatrix <- function(x,y){
 }
 
 
-tallyfromCorrelation <- function(data_input, importance_metric = "correlation", transform = F, prune = NULL,costs = c(.5,.5), ncues = 10^10, selectFeatures =F){
+tallyfromCorrelation <- function(data_input, importance_metric = "correlation", transform = F, prune = NULL, costs = c(.5,.5), ncues = 10^10, selectFeatures =F){
   n.objects <- nrow(data_input)
   criterion <- getCriterion(data_input)
   cues <- getCues(data_input)
@@ -51,7 +51,7 @@ tallyfromCorrelation <- function(data_input, importance_metric = "correlation", 
   sw <- sort(weights)
   sw <- sw[-1] - sw[-length(sw)]
   sw <- sw[sw != 0]
-  weights[weights != 0] <- weights[weights!=0] + runif(sum(weights!=0))*min(sw)*.5
+  weights[weights != 0] <- weights[weights !=0 ] + runif(sum(weights !=0 )) * min(sw) * .5
   if(sum(weights != 0) > ncues) # set weakest cues to zero
     weights[rank(-abs(weights)) > ncues] <- 0
 

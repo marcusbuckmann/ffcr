@@ -6,19 +6,19 @@
 \usage{
 \S4method{plot}{fftreeModel}(
   x,
-  probabilities = FALSE,
+  proportions = FALSE,
   legend = TRUE,
   class_labels = FALSE,
-  colors = c("cornflowerblue", "brown3"),
+  colors = c("brown3", "cornflowerblue"),
   ...
 )
 }
 \arguments{
 \item{x}{An object of type \linkS4class{fftreeModel-class}}
 
-\item{probabilities}{If \code{TRUE} probability estimates are shown for each leaf. If \code{FALSE}, predicted class labels are shown.}
+\item{proportions}{If \code{TRUE} the proportion of objects in the positive class are shown for each leaf. If \code{FALSE}, predicted class labels are shown.}
 
-\item{legend}{If \code{TRUE} legend is shown.}
+\item{legend}{If \code{TRUE}legend is shown.}
 
 \item{class_labels}{If \code{TRUE} class labels are shown for each leaf.}
 

@@ -55,6 +55,8 @@ showTally <- function(model, ...){
   intercept <- model@tally$intercept
   # we show tallying as a strictly positive sum, therefore we have to adjust intercept
   transformed_intercept <- intercept - sum(weights == -1)
+
+
   model_matrix <- model@tally$matrix
   category.information <- model@tally$categorical
   out.spaces <- "  "
@@ -101,10 +103,7 @@ showTally <- function(model, ...){
     colnames(tab) <- c(" ", "  ", "   ")
     print(tab, row.names = FALSE, right = FALSE)
 
-
-
-
     cat("   ____________________________________ \n")
-    cat(paste0("Predict ",model@class_labels[2], " if at least ",(-transformed_intercept), " reasons hold. \n"))
+    cat(paste0("Predict ",model@class_labels[2], " if at least ",(floor(-transformed_intercept) + 1), " reasons hold. \n"))
   }
 }

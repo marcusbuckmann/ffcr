@@ -11,7 +11,7 @@
 
 \item{newdata}{a data frame or matrix containing new data}
 
-\item{type}{character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{probability} returns a matrix of class probabilities, \code{metric} returns the classification performance and \code{frugality} returns the average number of nodes visisted until a decision was made.}
+\item{type}{character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{metric} returns the classification performance and \code{frugality} returns the average number of nodes visisted until a decision was made.}
 
 \item{...}{additional arguments that are only used if the function is called internally}
 }

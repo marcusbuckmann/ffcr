@@ -5,8 +5,8 @@
 #'@slot formula \link[stats]{formula} object of the model.
 #'@slot parameters Parameters used to train the tallying model.
 #'@slot performance List showing fitting and cross-validated performance.
-#'@slot class_labels A vector of length 2 containing the class labels. The second entry is referred to as the positive class.
-#'@slot weights A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@slot class_labels A vector of length 2 containing the class labels. The first entry is referred to as the negative class, the second entry is referred to as the positive class.
+#'@slot weights A numeric vector of length 2. The first entry denotes the weight of instances in the negative class, the second entry the weight of instances in the positive class.
 #'@slot prior The proportion of objects in the positive class in the training set.
 #'@slot tally Representation of the tallying model
 #'@slot split_function How numeric features are split when 'basic' method is used.
@@ -17,7 +17,7 @@ setClass("tallyModel", representation(
   formula = "formula",
   parameters = "list",
   performance = "list",
-  class_labels = "character",
+  class_labels = "vector",
   weights = "numeric",
   prior = "numeric",
   tally = "list",
@@ -38,7 +38,7 @@ setClass("tallyModel", representation(
 #' }
 #'@param max_size Maximum number of features that contribute to the tallying model (default: 6)
 #'@param split_function Function should be used to determine the splitting values on numeric features. This only applies to tallying models trained with the 'basic' method. By default Gini entropy ('gini') is used. Other options are Shannono entropy ('entropy') and 'median'.
-#'@param weights A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight of instances in the positive class, the second entry the weight of instances in the negative class.
+#'@param weights A numeric vector of length 2 (default: \code{c(1,1)}) with weights assigned to instances in the two classes. The vector entries should be named by the class labels. If they are not, the first entry refers to the negative class, the second entry to the positive class.
 #'(\emph{see examples}).
 #'@param cv If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.
 #'@param cross_entropy_parameters Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.
@@ -54,7 +54,7 @@ setClass("tallyModel", representation(
 #' # in this way both classes contribute equally when training the model
 
 #' prior <- mean(ifelse(liver$diagnosis == "Liver disease", 1, 0))
-#' weights <- c(1/prior, 1/(1-prior))
+#' weights <- c("No liver disease" = prior, "Liver disease" = 1-prior)
 #' mod <- tally(data = liver, formula = diagnosis~., weights = weights)
 #'
 
@@ -99,12 +99,18 @@ setMethod("tally", signature(data = "data.frame"),
                                        max_size = max_size,
                                        cross_entropy_parameters = cross_entropy_parameters
                 )
-                pred[test.ix] <- predict(model,data[test.ix,],type = "probability")[,2]
+                pred[test.ix] <- predict(model, data[test.ix,],type = "numeric")[,2]
               }
 
-              criterion <- data[,1]
-              class_labels <- as.character(sort(unique(criterion)))
-              criterion <- ifelse(as.character(criterion) == class_labels[2], 1,0)
+              criterion <- getCriterion(data)
+              class_labels <- sort(unique(criterion))
+              if(!all(is.numeric(criterion))){
+                class_labels <- as.character(class_labels)
+                criterion <- ifelse(as.character(criterion) == class_labels[2], 1,0)
+              } else {
+                criterion <- ifelse(criterion == max(criterion), 1,0)
+              }
+
               prediction.clean <- computePerformance(criterion, pred, threshold = .5)
             }
 
@@ -148,8 +154,6 @@ setMethod("tally", signature(data = "matrix"),
                                    max_size = max_size,
                                    cross_entropy_parameters = cross_entropy_parameters
             )
-
-
             cl <- match.call(expand.dots = TRUE)
             cl$data <- substitute(data, parent.frame())
             cl[[1]] <- as.name("tally")
@@ -165,13 +169,23 @@ buildTallying <- function(data,
                           method = "regression",
                           split_function = "gini",
                           max_size = 6,
-                          costs = c(.5,.5),
                           weights = c(1,1),
                           cross_entropy_parameters = cross_entropy_control()
 ){
   data.original <- data
   criterion <- getCriterion(data)
-  class_labels <- as.character(sort(unique(criterion)))
+  class_labels <- sort(unique(criterion))
+  if(!all(is.numeric(criterion))){
+    class_labels <- as.character(class_labels)
+    criterion <- ifelse(as.character(criterion) == class_labels[2], 1,0)
+  } else {
+    criterion <- ifelse(criterion == max(criterion), 1,0)
+  }
+  data[,1] <- criterion
+
+
+
+
   prior <- getPrior(data)
   if(length(class_labels)>2 || length(class_labels) == 1)
     stop("The class label variable has to have exactly 2 distinct values")
@@ -179,24 +193,18 @@ buildTallying <- function(data,
   if(any(is.na(data)))
     stop("The data contains missing values. This method does not support that.")
 
-  criterionName <- colnames(data)[1]
-  data[,1] <- ifelse(as.character(data[,1]) == class_labels[2], 1,0)
 
-  # if costs are defined use them to overwrite weights
-  if(!all(costs == c(.5,.5))){
-    weights <- getWeightsFromCost(costs, prior)
-  }
-  # if weights are defined use them to overwrite costs
-  if(!all(weights == c(1,1))){
-    weights <- weights / ((weights * c(prior, 1 - prior))[1] * 2) #scale weights correctly
-    costs <- getCostsFromWeights(weights, prior)
-  }
 
+  if(all(is.null(names(weights)))){
+    names(weights) <- class_labels
+  }
+  costs <- c(weights[as.character(class_labels[2])], weights[as.character(class_labels[1])]) # user input: first negative, then positive class; code works with the revered order. We should not change that as class_labels are ordered (negative, positive)
+  rescaled_weights <- getWeightsFromCost(costs, prior)
 
   method <- match.arg(method, c("basic", "regression", "cross-entropy"))
 
   if(method %in% c("basic", "regression")){
-    splitted <- dichotomize_data(data, splittingFunction = split_function, weights = c(.5,.5))
+    splitted <- dichotomize_data(data, splittingFunction = split_function)
     data_bin <- splitted$data
   }
   if( method == "basic"){
@@ -207,7 +215,7 @@ buildTallying <- function(data,
     model_list <- lapply(1:min(c(max_size, ncol(data_bin) - 1)), function(x) binaryTallyFromGlmnet(lasso_model_binary, data_bin, costs = costs, ncues = x))
   }
   if(method %in% c("basic", "regression")){
-    p1 <- sapply(model_list, function(x) predicting(x,data_bin, weights)["Accuracy"])
+    p1 <- sapply(model_list, function(x) predicting(x, data_bin, rescaled_weights)["Accuracy"])
     model_list <- model_list[[which.max(p1)]]
 
     tally <- list()
@@ -231,7 +239,7 @@ buildTallying <- function(data,
   }
   model@prior <- prior
   model@formula <- stats::formula(data)
-  model@class_labels <- as.character(class_labels)
+  model@class_labels <- class_labels
   model@training_data <- data
   model@weights <- weights
   model@parameters$algorithm = method

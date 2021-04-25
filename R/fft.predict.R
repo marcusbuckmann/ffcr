@@ -4,13 +4,13 @@
 #' Return predicted responses or measures of performance from a fitted \code{\link{fftreeModel-class}} object
 #' @param object an S4 object of class \code{\link{fftreeModel-class}} created by \code{\link{fftree}} function
 #' @param newdata a data frame or matrix containing new data
-#' @param type character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{probability} returns a matrix of class probabilities, \code{metric} returns the classification performance and \code{frugality} returns the average number of nodes visisted until a decision was made.
+#' @param type character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{metric} returns the classification performance and \code{frugality} returns the average number of nodes visisted until a decision was made.
 #' @param ... additional arguments that are only used if the function is called internally
 #' @export
 setMethod("predict", signature("fftreeModel"),
           function(object, newdata, type = "response", ...){
 
-            type <- match.arg(type,c("response","probability", "metric","frugality"))
+            type <- match.arg(type,c("response", "metric","frugality", "numeric"))
 
             if(!isTRUE(all.equal(object@formula, formula(NULL)))){
               formula_terms <- terms(object@formula)
@@ -27,13 +27,12 @@ setMethod("predict", signature("fftreeModel"),
 
             output <- FFTtest(object, newcues)
 
-            if(type == "probability"){
+            if(type == "numeric"){
               out_final <- cbind(1 - output,output)
               colnames(out_final) <- object@class_labels
             }
             if(type == "response"){
               out_final <- ifelse(output >= 0.5, object@class_labels[2],object@class_labels[1])
-              out_final <- as.factor(out_final)
             }
             if(type == "metric"){
               out_final <- computePerformance(criterion, output, ...)
@@ -71,9 +70,6 @@ computePerformance <- function(criterion, predicted, threshold = .5, random = FA
   fp.rate <- fp/ (tn + fp)
   balanced <- (tp.rate+(1-fp.rate))/2
   f1 <- 2 * tp/(2 * tp + fp + fn)
-  matthews <- (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
-  if(is.na(matthews))
-    matthews <- 0
   performance <- c(accuracy, tp.rate, 1-fp.rate, balanced, f1, tp, fp, tn, fn)
   names(performance) <- c("Accuracy", "Sensitivity", "Specificity", "Balanced accuracy", "F1 score", "True positives", "False positives", "True negatives", "False negatives")
   return(performance)

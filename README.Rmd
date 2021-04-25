@@ -17,48 +17,35 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 ## Fast-and-frugal classification in R (ffcr)
 
-The *ffcr* package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ (Katiskopoulos et al., 2020) describes these models, their applications and the algorithms to construct these in detail. 
+The *ffcr* package constructs two transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ (Katiskopoulos et al., 2020) describes these models, their applications and the algorithms to construct them in detail. 
 
-A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package implemts several methods for training these models, ranging from simple heuristics to computationyll more complex cross-entropy optimization (Rubinstein, 1999).
+A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. This package implements several methods for training these two models, ranging from simple heuristics to computationally more complex cross-entropy optimization (Rubinstein, 1999).
 
-
-There exist an alternative excellent R package to train fast-and-frugal trees, [FFTrees](https://github.com/ndphillips/FFTrees).
 
 
 ## Installation
 
-You can install ffcr using from this GitHub page with
+The package can be installed with the following command:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("marcusbuckmann/ffcr")
 ```
-or download the Windows Binary _ffcr_1.0.zip_ and install it from your hard drive.
+Alternatively, Windows users can download the binary file [ffcr_1.0.zip](https://github.com/marcusbuckmann/ffcr/blob/master/ffcr_1.0.zip) and install it from the hard drive.
 
-
-## How to use the package
-
-
-To illustrate the functionality of the package, we use a medical problem, predicting which patients have a liver condition. We start with loading the package and the data (Dua & Graff, 2017; Ramana, Surendra & Venkateswarlu, 2011), which is included in the package.
-
-
-
-```{r}
-library(ffcr)
-data(liver)
-```
 
 
 
 ## Training fast-and-frugal trees
 
-We start by training a fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument. 
+We start by training a fast-and-frugal tree on a medical data set, predicting whether patients have liver disease (Ramana, Babu, and Venkateswarlu, 2011; Dua and Graff, 2017). The data set is included in the package. 
 
 ```{r}
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
+library(ffcr)
+model <- fftree(diagnosis~., data = liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
 ```
 
-The model object shows the structure of the trees and its performance on the data set.
+The structure of the tree and its performance is shown by printing the model.
 
 ```{r}
 print(model)
@@ -76,33 +63,37 @@ knitr::include_graphics("man/figures/tree.png")
 
 
 
-To make predictions according to a fast-and-frugal tree, we can use the `predict` function. 
+To make predictions according to the fast-and-frugal tree, we can use the `predict` function. 
 ```{r}
-predict(model, newdata = liver[301:nrow(liver),], type = "metric")
-
+pred <- predict(model, newdata = liver[1:10,])
+pred
 ```
 
 ## Training tallying models
 
-To train tallying models, we use the *tally* function.
+To train tallying models, we use the *tally* function. To make predictions we use the same command as for the fast-and-frugal trees.
 
 
 
 ```{r}
-model <- tally(liver, max_size = 4)
+model <- tally(diagnosis~., data = liver, max_size = 4)
+print(model)
+pred <- predict(model, newdata = liver[1:10,])
+
 ```
 
-Please consult the vignette of the package for more details on the functionalities of the package and the book _Classification in the Wild_ for background information on fast-and-frugal trees and tallying models.
 
-# References
+Please consult the vignette and the documentation of the package for more details on how to use it. The book _Classification in the Wild_ provides background information on fast-and-frugal trees and tallying models.
+
+## References
 
 Dua, Dheeru, and Casey Graff. 2017. “UCI Machine Learning Repository.” University of California, Irvine, School of Information; Computer Sciences. http://archive.ics.uci.edu/ml.
 
 Katikopoulos, Konstantinos V., Özgür Şimşek, Marcus Buckmann, and Gerd Gigerenzer. 2020. Classification in the Wild: The Science and Art of Transparent Decision Making. MIT Press.
 
-Ramana, Bendi Venkata, M Surendra Prasad Babu, and N. B. Venkateswarlu. 2011. “A Critical Study of Selected Classification Algorithms for Liver Disease Diagnosis.” International Journal of Database Management Systems 3 (2): 101–14.
+Ramana, Bendi Venkata, M Surendra Prasad Babu, and N. B. Venkateswarlu. 2011. “A Critical Study of Selected Classification Algorithms for Liver Disease Diagnosis.” International Journal of Database Management Systems 3 (2): 101–114.
 
-Rubinstein, Reuven. 1999. “The Cross-Entropy Method for Combinatorial and Continuous Optimization.” Methodology and Computing in Applied Probability 1 (2): 127–90.
+Rubinstein, Reuven. 1999. “The Cross-Entropy Method for Combinatorial and Continuous Optimization.” Methodology and Computing in Applied Probability 1 (2): 127–190.
 
  
 

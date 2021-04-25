@@ -120,14 +120,14 @@ showTree <- function(model, probabilities = F, weights = c(1,1),...){
 #' plots fast-and-frugal tree
 #'
 #'@param x An object of type \linkS4class{fftreeModel-class}
-#'@param legend If \code{TRUE} legend is shown.
-#'@param probabilities If \code{TRUE} probability estimates are shown for each leaf. If \code{FALSE}, predicted class labels are shown.
+#'@param legend If \code{TRUE}legend is shown.
+#'@param proportions If \code{TRUE} the proportion of objects in the positive class are shown for each leaf. If \code{FALSE}, predicted class labels are shown.
 #'@param class_labels If \code{TRUE} class labels are shown for each leaf.
 #'@param colors Vector of length 2 to set the colors of the two classes. Default: \code{c("cornflowerblue""brown3")}.
 #'@param ... optional parameters passed to low level function
 #'@export
-setMethod("plot", signature("fftreeModel"), function(x, probabilities = FALSE, legend = TRUE, class_labels = FALSE, colors  = c("brown3", "cornflowerblue"),...){
-  plotFFT(x, probabilities = probabilities, showLegend = legend, show_label = class_labels, showBox = probabilities,  colPos = colors[1], colNeg = colors[2], ...)
+setMethod("plot", signature("fftreeModel"), function(x, proportions = FALSE, legend = TRUE, class_labels = FALSE, colors  = c("brown3", "cornflowerblue"),...){
+  plotFFT(x, probabilities = proportions, showLegend = legend, show_label = class_labels, showBox = proportions,  colPos = colors[1], colNeg = colors[2], ...)
 }
 )
 
@@ -209,8 +209,8 @@ plotFFT <- function(model, weights = c(1,1), probabilities = F, showLegend = TRU
       graphics::segments(x0 = current.x,x1 = current.x - x.delta, y0= current.y, y1 = current.y + y.delta)
       graphics::segments(x0 = current.x,x1 = current.x+x.delta, y0= current.y, y1 = current.y + y.delta)
       if(i < 2 | branchlab){
-        graphics::text(x = current.x+ .5*x.delta+.03, y = current.y + .5 * y.delta, label = "yes", cex = .7*tx)
-        graphics::text(x = current.x- .5*x.delta-.03, y = current.y + .5 * y.delta, label = "no", cex = .7*tx)
+        graphics::text(x = current.x+ .5*x.delta + .05, y = current.y + .5 * y.delta, label = "yes", cex = .7*tx)
+        graphics::text(x = current.x- .5*x.delta - .05, y = current.y + .5 * y.delta, label = "no", cex = .7*tx)
       }
     }
 

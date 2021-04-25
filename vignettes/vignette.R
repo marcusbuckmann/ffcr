@@ -5,15 +5,11 @@ knitr::opts_chunk$set(
 )
 
 ## -----------------------------------------------------------------------------
-# library(ffcr)
-devtools::load_all(".")
-data(liver)
-
-## -----------------------------------------------------------------------------
-model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 4)
+library(ffcr)
+model <- fftree(liver, method = "greedy", max_depth = 4)
 
 ## ---- eval=FALSE--------------------------------------------------------------
-#  fftree(diagnosis ~ sex + age + albumin + proteins + aspartate  , data = liver)
+#  fftree(diagnosis ~ age + albumin + proteins + aspartate, data = liver, max_depth = 4)
 
 ## -----------------------------------------------------------------------------
 print(model)
@@ -23,23 +19,23 @@ plot(model)
 
 ## -----------------------------------------------------------------------------
 p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-model <- fftree(liver, weights = c(1-p,p), cv = TRUE)
+weights <- c("No liver disease" = p, "Liver disease" = 1 - p)
+model <- fftree(liver, weights = weights, cv = TRUE, max_depth = 4)
 model
 
 ## -----------------------------------------------------------------------------
-model <- fftree(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p))
+model <- fftree(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_depth = 4)
 
 predict(model, newdata = liver[301:310,], type = "response")
-
-predict(model, newdata = liver[301:310,], type = "probability")
-
 predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 
 
 ## -----------------------------------------------------------------------------
 p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-model <- tally(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_size = 6)
+weights <- c("No liver disease" = p, "Liver disease" = 1 - p)
+model <- tally(diagnosis ~ ., data = liver[1:300,], weights = weights, max_size = 4)
 model
+predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 
 
 

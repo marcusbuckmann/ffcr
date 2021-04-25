@@ -61,7 +61,7 @@ fftree(
 
 \item{split_function}{Function should be used to determine the splitting values on numeric features. This only applies to fast-and-frugal trees trained with the 'basic' or 'greedy' method. By default Gini entropy ('gini') is used. Other options are Shannon entropy ('entropy') and 'median'.}
 
-\item{weights}{A numeric vector of length 2 (default: \code{c(1,1)}). The first entry specifies the weight given to instances in the positive class, the second entry the weight of instances given to objects in the negative class.
+\item{weights}{A numeric vector of length 2 (default: \code{c(1,1)}) with weights assigned to instances in the two classes. The vector entries should be named by the class labels. If they are not, the first entry refers to the negative class, the second entry to the positive class.
 (\emph{see examples}).}
 
 \item{pruning}{If the argument is set to \code{TRUE} the tree is pruned using cross-validation. This can increase the training time substantially and is not recommended when using the computationally costly 'cross-entropy' method.}
@@ -88,7 +88,7 @@ model
 # weight instances by the inverse of the prior
 # in this way both classes contribute equally when training the model
 prior <- mean(ifelse(liver$diagnosis == "Liver disease", 1, 0))
-weights <- c(1/prior, 1/(1-prior))
+weights <- c("No liver disease" = prior, "Liver disease" = 1-prior)
 mod <- fftree(data = liver, formula = diagnosis~., weights = weights, method = "greedy")
 
 }

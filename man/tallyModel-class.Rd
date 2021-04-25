@@ -18,9 +18,9 @@ An S4 class to represent a tallying tree model
 
 \item{\code{performance}}{List showing fitting and cross-validated performance.}
 
-\item{\code{class_labels}}{A vector of length 2 containing the class labels. The second entry is referred to as the positive class.}
+\item{\code{class_labels}}{A vector of length 2 containing the class labels. The first entry is referred to as the negative class, the second entry is referred to as the positive class.}
 
-\item{\code{weights}}{A numeric vector of length 2. The first entry denotes the weight of instances in the positive class, the second entry the weight of instances in the negative class.}
+\item{\code{weights}}{A numeric vector of length 2. The first entry denotes the weight of instances in the negative class, the second entry the weight of instances in the positive class.}
 
 \item{\code{prior}}{The proportion of objects in the positive class in the training set.}
 

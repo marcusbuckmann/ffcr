@@ -1,8 +1,12 @@
 ---
-title: "Fast-and-frugal classification in R (ffcr)"
-author: "Marcus Buckmann and Özgür Şimşek"
+title: "An introduction to ffcr"
+author: "Marcus Buckmann and Ozgur Simsek"
 date: "`r Sys.Date()`"
-output: pdf_document
+# output: pdf_document
+output: rmarkdown::github_document
+# output: 
+#   html_document:
+#     keep_md: true
 bibliography: bib.bib
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
@@ -19,18 +23,31 @@ knitr::opts_chunk$set(
 ```
 
 
-The *ffcr* R package is used to construct two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. The book _Classification in the Wild: The Science and Art of Transparent Decision Making._ [@katsikopoulos2021] describes these models, their applications and the algorithms to construct them in detail. 
+
+# Introduction
+
+This document gives an introduction on the functionality of the *ffcr* package. This package allows the construction of two families of transparent classification models: _fast-and-frugal trees_ and _tallying_ models. A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
+
+To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained form the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver the condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
+
+We start with loading the package and the data.
+
+<!--- Figure \ref{} shows a fast-and-frugal tree and tallying model that predict who developed diabetes. --->
 
 
-A fast-and-frugal tree is a decision tree with a simple structure: one branch of each node exits the tree, the other continues to the next node until the final node is reached. A tallying model gives pieces of evidence the same weight. The package contains two main functions: `fftree` to train fast-and-frugal trees and `tally` to train tallying models. 
 
-To illustrate the functionality of the package, we use the *Liver* data set [@ramana2011] that we obtained from the UCI machine learning repository [@dua2017]. It contains 579 patients of which 414 have a liver condition and the other 165 do not. We predict which patient has a liver condition using medical measures and the age and gender of the people. 
+```{r}
+# library(ffcr)
+devtools::load_all(".")
+data(liver)
+```
 
 
-# Training fast-and-frugal trees
+
+# Learning fast-and-frugal trees
 
 
-The `fftree` function encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *cross-entropy*.^[In the book [@katsikopoulos2021], we refer to the cross-entropy optimization [@rubinstein1999] as the *best-fit* method. It does not guarantee to find the best possible tree but often produces more accurate trees than the other methods.]
+The `fftr` functions encompasses three different methods to train fast-and-frugal trees. These are named *basic*, *greedy*, and *best-fit*^[We use the cross-entropy method [@rubinstein1999]. It does not guarantee to find the best possible tree but produces very accurate trees, on average.] and are described in the book.
 
 <!---
 The *naive* method is the simplest and computationally least demanding approach. It is called naive, because the usefulness of each feature is evaluated independently of the other features. For each feature, the naive method identifies a splitting point that best separate objects of the two classes in the data. By default, the package uses *Gini impurity* to judge the goodness of a split. The naive method by stacking the features according to the quality of the split points, i.e. the feature that best separates the classes constitute the root of the tree. Now that the order of the features is established, we need to determine the exists of the tree, which side of a split exits the tree and which class is predicted. All observations in the data set are sent through the tree. In each node of the tree, the branch of the split that is purer exits the tree. Purity is measured by the proportion of the classes falling into a branch. The purest branch only contains observations of one class, the least pure branch contains the same number of observations of both classes. The exit branch predicts the majority class of those object falling into the branch. The objects not exiting the tree are send to the next node and determine its exit. The process is completed until all object have exited the tree.
@@ -44,22 +61,23 @@ Using the greedy and the cross-entropy method, a feature can be split several ti
 
 
 
-We train a fast-and-frugal tree on the Liver data set. When the first column of a data set contains the class labels that we want to predict, we can simply pass the data set as the first argument. We limit the size of the tree to at most four nodes. The _greedy_ method is the default algorithm. It is fast and usually produces accurate trees. 
+## Training a fast-and-frugal tree
+
+We train or first fast-and-frugal tree on the Liver data set. If the first column in the data set is the class label, we can simply pass the data set as the first argument.
 
 ```{r}
-library(ffcr)
-model <- fftree(liver, method = "greedy", max_depth = 4)
+model <- fftree(liver, use_features_once = FALSE, method = "greedy", max_depth = 6)
 ```
 
 
-Alternatively, we can call the _fftree_ function using the formula syntax. Here we train the fast-and-frugal tree using only a few selected features.
+Alternatively, we can call the function using the formula syntax. Here we train the fast-and-frugal tree using only only a few selected features.
 
 ```{r, eval=FALSE}
-fftree(diagnosis ~ age + albumin + proteins + aspartate, data = liver, max_depth = 4)
+fftree(diagnosis ~ sex + age  + albumin + proteins + aspartate  , data = liver)
 ```
 
 
-Printing the model shows the structure of the tree and its fitting performance in the data set. Additionally to standard performance measures such as accuracy and the F1 score, the output also states the _depth_ of the tree, the number of unique _features_ that are split in the tree, and the _frugality_, which is the average number of nodes visited until a prediction is made.
+The model object shows the structure of the trees and its performance on the data set.
 
 ```{r}
 print(model)
@@ -67,40 +85,41 @@ print(model)
 
 
 To visualize the tree we use 
-```{r, fig1, fig.height = 5, fig.width=4, fig.align= "center"}
+```{r, fig1, fig.height = 6, fig.width=4, fig.align= "center"}
 plot(model)
 ```
 
 
-The sensitivity of this tree is very high, while the specificity is low---the tree nearly always predicts _Liver disease_. This produces an accurate tree when considering the number of total misclassifications as the relevant performance metric. To increase the specificity of the tree, we can weigh the observations such that both classes of patients get the same share. Let *p* be the proportion of patients that have liver disease. We weigh the patients with liver disease by 1-p, and the patients without disease by p. Doing that the specificity increases substantially:
+How does the fast-and-frugal tree perform in cross-validation? By default the model is fitted to the complete data set but if we set 'cv = TRUE', 10-fold cross-validation is used to estimate the predictive performance of the tree. The model saved in the object is fitted on the complete training set. In fitting and prediction, the sensitivity is very high, while the specificity is low. The majority of the patients (71%) have liver disease, therefore predicting liver disease for most objects will produce a highly accurate tree. To avoid that, we can weigh the objects such that the objects in both classes get the same share. Let *p* be the proportion of patients that have liver disease. We weigh the patients with liver disease by 1-p, and the patients without disease by p.
 
+Note how sensitivity and specificity are more similar now:
 
 
 ```{r}
 p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-weights <- c("No liver disease" = p, "Liver disease" = 1 - p)
-model <- fftree(liver, weights = weights, cv = TRUE, max_depth = 4)
+model <- fftree(liver, weights = c(1-p,p), cv = TRUE)
 model
 ```
 
-By default, the *fftree* method fits a fast-and-frugal tree to the complete data set. Here we have set 'cv = TRUE' to additionally estimate the predictive performance of the tree using 10-fold cross-validation.  
 
-
-
-To make predictions according to a fast-and-frugal tree, we can use the `predict` function. It either returns the class label (*response*), or the performance across the observations (*metric*). Note that for the latter, the class labels need to be included in the data that is passed to the predict function.
+To make predictions according to a fast-and-frugal tree, we can use the `predict` function. It returns either the class label (*response*), the predicted probability of belonging to one of the classes (*probability*) or the performance across the observations (*metric*). Note that for the latter, the class labels need to be included in the data that is passed to the predict function.
 
 
 ```{r}
-model <- fftree(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_depth = 4)
+model <- fftree(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p))
 
 predict(model, newdata = liver[301:310,], type = "response")
+
+predict(model, newdata = liver[301:310,], type = "probability")
+
 predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 
 ```
 
 # Learning tallying models
 
-The package implements two different methods to train tallying models, *basic* and *cross-entropy*. As for fast-and-frugal trees, we set   a maximum size (_max_size_) of four to obtain a simple  model and weigh the observations to make sure that the tallying model strikes a good balance between high sensitivity and specificity. The _predict_ function is used in the same way as it is for fast-and-frugal trees.
+The package implements two different methods to train tallying models, which are also explained in the book. These are named *basic* and *best-fit*.^[We again use the cross-entropy method.]
+
 <!---
 The *regression* method only works on binary features. If the data contains numeric variables, these are split such that Gini impurity is minimized. On the dichotomized data, a Lasso regression model is trained. The tallying model does not use the actual weights of the regression model but only their sign (-1,1). The size of the tallying---the number of features with nonzero weight---is determined by the *maximum_size* parameter (default = 6). The tallying model users those features that are set to zero latest with an increasing degree of regularization.
 
@@ -108,16 +127,14 @@ The *cross-entropy* method is very similar to the cross-entropy method of the fa
 
 ## Training a tallying model
 
-Training a tallying model and using it for prediction just works as it does for fast-and-frugal trees.
+Training a tallying model and making predictions just works as it does for fast-and-frugal trees.
 --->
 
 ```{r}
 p <- sum(liver$diagnosis == "Liver disease")/nrow(liver)
-weights <- c("No liver disease" = p, "Liver disease" = 1 - p)
-model <- tally(diagnosis ~ ., data = liver[1:300,], weights = weights, max_size = 4)
-model
-predict(model, newdata = liver[301:nrow(liver),], type = "metric")
+model <- tally(diagnosis ~ ., data = liver[1:300,], weights = c(1-p,p), max_size = 6)
 
+predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 
 ```
 
@@ -128,6 +145,12 @@ predict(model, newdata = liver[301:nrow(liver),], type = "metric")
 ## References
 
 
+
+
+
+
+
+ 
 
 
 

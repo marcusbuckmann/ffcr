@@ -18,23 +18,23 @@ setMethod("prediction", signature("tallyModel"),
 #' Return predicted responses or measures of performance from a fitted \linkS4class{tallyModel-class} object
 #' @param object an S4 object of class \linkS4class{tallyModel-class} created by \code{\link{tally}} function
 #' @param newdata a data frame or matrix containing new data
-#' @param type character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{probability} returns a matrix of class probabilities, \code{metric} returns the classification performance.
+#' @param type character string denoting the type of output returned. \code{response} (default) returns the predicted class label, \code{metric} returns the classification performance.
 #' @export
 setMethod("predict", signature("tallyModel"),
           function(object, newdata, type = "response"){
 
-            type <- match.arg(type,c("response","probability", "metric"))
+            type <- match.arg(type,c("response", "metric", "numeric"))
             formula.terms <- terms(object@formula)
             train.names <- attr(formula.terms,"term.labels")
             newcues <- newdata[,train.names, drop = F]
             output <- Tallytest(object, newcues)
-            if(type == "probability"){
+            if(type == "numeric"){
               out_final <- cbind(1 - output,output)
               colnames(out_final) <- object@class_labels
             }
             if(type == "response"){
               out_final <- ifelse(output >= 0.5, object@class_labels[2],object@class_labels[1])
-              out_final <- as.factor(out_final)
+
             }
             if(type == "metric"){
               criterion <- model.frame(formula = object@formula, data = newdata, na.action = NULL)[,1]

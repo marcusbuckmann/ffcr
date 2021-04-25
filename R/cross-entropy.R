@@ -386,7 +386,7 @@ fft_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thres
 
     treeOut <- updateTree(treeOut, data_input, weights = weights,pruneEmpty = T)
 
-    o <- as.numeric(as.character(predict(treeOut,data_input,"probability")[,2]))
+    o <- as.numeric(as.character(predict(treeOut,data_input, "numeric")[,2]))
     # this is the normal case
 
     p1 <- performanceAccuracy(data_input[,1],o, weights = weights) - wFrugal * predict(treeOut,data_input, type = "frugality")
