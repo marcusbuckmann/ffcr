@@ -70,7 +70,19 @@ buildExp <- function(pars, cols, failure.directions) {
   return (rslt)
 }
 
-tally_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thresholds = 100, elite_samples = 5, iterations = 100, costs = c(.5,.5), learning_rate = 0.1, maximum_time = 3600, early_stopping = 25, split_percentiles = F, verbose = F, inrep = NULL){
+tally_cross_entropy <- function(data_input,
+                                maximum_size = 6,
+                                samples = 100,
+                                thresholds = 100,
+                                elite_samples = 5,
+                                iterations = 100,
+                                costs = c(.5,.5),
+                                learning_rate = 0.1,
+                                maximum_time = 3600,
+                                early_stopping = 25,
+                                split_percentiles = F,
+                                verbose = F,
+                                inrep = NULL){
   if(verbose & !is.null(inrep)){
     cat("#################### \n")
     cat(paste0(inrep ,". tree \n" ))
@@ -311,7 +323,10 @@ tally_cross_entropy_multiple_starts <- function(
   verbose = F,
   ...){
 
+
+
   maximum_time <- maximum_time / starts * threads
+
 
   `%dopar%` <- foreach::`%dopar%`
   doParallel::registerDoParallel(threads)
@@ -330,6 +345,9 @@ tally_cross_entropy_multiple_starts <- function(
     inrep = k,
     verbose = verbose)
   doParallel::stopImplicitCluster()
+
+
+
 
   mod_maximum_size <- sapply(mods, function(x) sum(x@tally$weights != 0))
   predictions <- lapply(mods, function(x) as.numeric(as.character(predict(x,data_input,"response"))))

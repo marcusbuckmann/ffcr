@@ -3,7 +3,7 @@ Type: Package
 Title: Train two families of transparent classification models: fast-and-frugal trees and tallying
 Version: 1.0
 Date: 2021-01-02
-Author: Marcus Buckmann, Özgür Simsek
+Author: Marcus Buckmann, Ozgur Simsek
 Maintainer: Marcus Buckmann <marcusbuckmann@gmail.com>
 Description: This package trains fast-and-frugal trees and tallying models, two simple and transparent classifcation models. The algorithms to train these models include simple heuristic approaches as well as cross-entropy optimisation. 
 Depends:
