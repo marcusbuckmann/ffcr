@@ -53,7 +53,7 @@ cross_entropy_control <- function(
     elite_samples = elite_samples,
     threads = threads,
     verbose = FALSE # TODO for next version. https://stackoverflow.com/questions/5423760/how-do-you-create-a-progress-bar-when-using-the-foreach-function-in-r
-    )
+  )
   return(output)
 }
 
@@ -277,7 +277,6 @@ fft_cross_entropy_multiple_starts <- function(data_input,
                                               ...){
 
   maximum_time <- maximum_time / starts * threads
-
   `%dopar%` <- foreach::`%dopar%`
   doParallel::registerDoParallel(threads)
   mods <- foreach::foreach(k = 1:starts) %dopar% fft_cross_entropy(
@@ -296,7 +295,9 @@ fft_cross_entropy_multiple_starts <- function(data_input,
     wFrugal = wFrugal,
     inrep = k,
     verbose = verbose)
-    doParallel::stopImplicitCluster()
+
+  doParallel::stopImplicitCluster()
+
 
 
   mod_maximum_size <- sapply(mods, function(x) nrow(x@tree$matrix)-1)
@@ -356,7 +357,23 @@ tally_cross_entropy_multiple_starts <- function(
   return(mods[[which.max(models_performance)]])
 }
 
-fft_cross_entropy <- function(data_input, maximum_size = 6, samples = 100, thresholds = 100, elite_samples = 10, iterations = 1000, costs = c(.5,.5), learning_rate = 0.05, maximum_time = 3600, early_stopping = 25,  verbose = F, split_percentiles = F, multiple_splits = F, wFrugal = 0, inrep = NULL){
+fft_cross_entropy <- function(data_input,
+                              maximum_size = 6,
+                              samples = 100,
+                              thresholds = 100,
+                              elite_samples = 10,
+                              iterations = 1000,
+                              costs = c(.5,.5),
+                              learning_rate = 0.05,
+                              maximum_time = 3600,
+                              early_stopping = 25,
+                              verbose = F,
+                              split_percentiles = F,
+                              multiple_splits = F,
+                              wFrugal = 0,
+                              inrep = NULL){
+
+
   if(verbose & !is.null(inrep)){
     cat("#################### \n")
     cat(paste0(inrep ,". tree \n" ))
