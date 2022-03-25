@@ -64,14 +64,13 @@ fftree(
 \item{weights}{A numeric vector of length 2 (default: \code{c(1,1)}) with weights assigned to instances in the two classes. The vector entries should be named by the class labels. If they are not, the first entry refers to the negative class, the second entry to the positive class.
 (\emph{see examples}).}
 
-\item{pruning}{If the argument is set to \code{TRUE} the tree is pruned using cross-validation. This can increase the training time substantially and is not recommended when using the computationally costly 'cross-entropy' method.}
+\item{pruning}{If the argument is set to \code{TRUE} the tree is pruned using cross-validation. This can increase the training time substantially and is not recommended when using the computationally costly 'cross-entropy' method. By default, pruning is not used.}
 
-\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, pruning is not used.}
+\item{cv}{If \code{TRUE} 10-fold cross validation is used to estimate the predictive performance of the model. By default, cross-validation is not used.}
 
 \item{use_features_once}{If \code{TRUE} an attribute is used only once in a tree. If \code{FALSE}, a feature may be split several times. Note that, by construction, the basic method can only use each feature once. The default value is \code{TRUE}.}
 
-\item{cross_entropy_parameters}{Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed. By default cross-validation
-is not used.}
+\item{cross_entropy_parameters}{Hyperparameters for the cross-entropy method. By default the output of the function \code{\link{cross_entropy_control}} is passed.}
 }
 \value{
 A \linkS4class{fftreeModel} object.

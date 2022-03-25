@@ -46,11 +46,7 @@ NumericMatrix makeCueSplitsC(NumericVector criterion, NumericVector cue){
 		nNeg += 1;
   		d[thX] += 1;
 	}
-  	
-  
-  	
   	}
-  	
   	
   	for(int j = 0; j < nUnique; ++j){
   		confusionMatrix(j,1) = nPos - c[j];
