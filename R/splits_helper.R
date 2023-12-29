@@ -21,8 +21,9 @@ splitCue <- function(criterion, cue, splittingFunction, weights = c(1,1), random
   splits[,c(3,5)] <- splits[,c(3,5)] * weights[2]
 
   splits.proportion <- makeProportionSplits(splits[,-1,drop = F])
-  splits.splittingcriterion <- splittingFunction(splits.proportion = splits.proportion,splits[,-1,drop = F])
-  split_select <- which(splits.splittingcriterion == min(splits.splittingcriterion))
+  splits.splittingcriterion <- splittingFunction(splits.proportion = splits.proportion, splits[,-1,drop = F])
+
+  split_select <- which(splits.splittingcriterion == min(splits.splittingcriterion, na.rm = T))
   if (length(split_select) > 1){
     if(randomTie){
       split_select <- sample(split_select)[1]
@@ -66,8 +67,6 @@ splitCategoricalCue <- function(criterion, cue,
   splitting.point <- splitCue(criterion,cue.out,splittingFunction, weights = weights, randomTie = F)
   splitting.point.category <- splitting.point[1]
   splitting.point[1] <- 0
-  #splitting.point[c(2,4)] <- splitting.point[c(2,4)]*weights[1]
-  #splitting.point[c(3,5)] <- splitting.point[c(3,5)]*weights[2]
 
 
   ix.smaller.categories <- 1:floor(splitting.point.category)
@@ -153,7 +152,7 @@ hellingerFromConfusionMatrix <- function(splits.proportion,splits.input){
   n0R <- splits.input[,4]
 
   sum1 <- sqrt(n0L/n0)-sqrt(n1L/n1)
-  sum2<- sqrt(n0R/n0)-sqrt(n1R/n1)
+  sum2 <- sqrt(n0R/n0)-sqrt(n1R/n1)
   hellinger <- sqrt(sum1^2+sum2^2)
   hellinger <- 1-(hellinger/sqrt(2))
   return(hellinger)
@@ -176,12 +175,12 @@ makeProportionSplits <- function(cue.splits){
   return(splits.1left.1right.lefttoright)
 }
 
-makeCueSplitsNoC<-function(criterion,cue,laplace=F){
+makeCueSplitsNoC <- function(criterion,cue,laplace=F){
   # just for debug purposes, not used
-  confusion.List<-NULL
-  unique.cue.values<-sort(unique(cue))
-  unique.cue.values<-unique.cue.values[-length(unique.cue.values)]
-  confusion.matrix.cue<-t(sapply(unique.cue.values,function(x) as.numeric(laplace) + makeConfusionMatrix(criterion,cue,x))) #here we can also use the C version
+  confusion.List <- NULL
+  unique.cue.values <- sort(unique(cue))
+  unique.cue.values <- unique.cue.values[-length(unique.cue.values)]
+  confusion.matrix.cue <- t(sapply(unique.cue.values,function(x) as.numeric(laplace) + makeConfusionMatrix(criterion,cue,x))) #here we can also use the C version
   return(cbind(unique.cue.values,confusion.matrix.cue))
 }
 
@@ -199,14 +198,14 @@ makeCueSplits<-function(criterion,cue,laplace=F){
 
 
 
-makeConfusionMatrix<-function(criterion,cue.input,threshold){
-  bigger.threshold<-cue.input>threshold
-  criterion.bigger.threshold<-criterion[bigger.threshold]
-  criterion.smaller.threshold<-criterion[!bigger.threshold]
-  a<-sum(criterion.bigger.threshold==1)
-  b<-length(criterion.bigger.threshold)-a
-  c<-sum(criterion.smaller.threshold==1)
-  d<-length(criterion.smaller.threshold)-c
+makeConfusionMatrix <- function(criterion,cue.input,threshold){
+  bigger.threshold <- cue.input > threshold
+  criterion.bigger.threshold <- criterion[bigger.threshold]
+  criterion.smaller.threshold <- criterion[!bigger.threshold]
+  a <- sum(criterion.bigger.threshold == 1)
+  b <- length(criterion.bigger.threshold) - a
+  c <- sum(criterion.smaller.threshold == 1)
+  d <- length(criterion.smaller.threshold) - c
   return(c(a,b,c,d))
 }
 
