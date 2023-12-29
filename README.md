@@ -30,10 +30,6 @@ The package can be installed with the following command:
 devtools::install_github("marcusbuckmann/ffcr")
 ```
 
-Alternatively, Windows users can download the binary file
-[ffcr\_1.0.zip](https://github.com/marcusbuckmann/ffcr/blob/master/ffcr_1.0.zip)
-and install it from the hard drive.
-
 ## Training fast-and-frugal trees
 
 We start by training a fast-and-frugal tree on a medical data set,
